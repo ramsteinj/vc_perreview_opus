@@ -101,7 +101,7 @@ async function handleLogout() {
     </main>
 
     <footer class="border-top py-3 text-center text-muted small bg-white">
-      인사평가 시스템 · Phase 3 (평가 설정)
+      인사평가 시스템 · Phase 4 (평가 응답)
     </footer>
   </div>
 </template>

@@ -21,6 +21,11 @@ class CycleStatus(models.TextChoices):
     CLOSED = 'CLOSED', '마감'
 
 
+class ResponseStatus(models.TextChoices):
+    DRAFT = 'DRAFT', '임시저장'
+    SUBMITTED = 'SUBMITTED', '제출완료'
+
+
 class EvaluationCycle(TimeStampedModel):
     """평가 회차. 항목·가중치·평가자 배정·응답이 모두 회차에 종속된다."""
 
@@ -235,5 +240,105 @@ class EvaluatorAssignment(TimeStampedModel):
             if self.secondary_evaluator_id == self.target_user_id:
                 errors['secondary_evaluator'] = '본인을 본인의 평가자로 지정할 수 없습니다.'
 
+        if errors:
+            raise ValidationError(errors)
+
+
+class EvaluationResponse(TimeStampedModel):
+    """평가자 1명이 대상 1개에 대해 작성하는 평가지 한 장.
+
+    중복 응답 방지의 단위다. UniqueConstraint(assignment, round)가 최종 방어선이며
+    애플리케이션 검증은 그 앞단의 사용자 친화적 안내 역할만 한다.
+    """
+
+    assignment = models.ForeignKey(
+        EvaluatorAssignment,
+        on_delete=models.CASCADE,
+        related_name='responses',
+        verbose_name='배정',
+    )
+    evaluator = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name='responses', verbose_name='평가자'
+    )
+    round = models.CharField('차수', max_length=10, choices=EvaluationRound.choices)
+    status = models.CharField(
+        '상태', max_length=10, choices=ResponseStatus.choices, default=ResponseStatus.DRAFT
+    )
+    submitted_at = models.DateTimeField('제출일시', null=True, blank=True)
+    overall_comment = models.TextField('종합의견', blank=True)
+
+    class Meta:
+        verbose_name = '평가지'
+        verbose_name_plural = '평가지'
+        ordering = ['-updated_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['assignment', 'round'], name='uniq_response_assignment_round'
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['evaluator', 'status']),
+            models.Index(fields=['assignment', 'round']),
+        ]
+
+    def __str__(self):
+        return f'{self.assignment.target_name} · {self.get_round_display()}'
+
+    @property
+    def cycle(self):
+        return self.assignment.cycle
+
+    @property
+    def is_submitted(self):
+        return self.status == ResponseStatus.SUBMITTED
+
+    @property
+    def expected_evaluator_id(self):
+        """이 차수의 평가자로 지정된 사용자 ID."""
+        if self.round == EvaluationRound.PRIMARY:
+            return self.assignment.primary_evaluator_id
+        return self.assignment.secondary_evaluator_id
+
+
+class EvaluationAnswer(models.Model):
+    """평가지 내 개별 항목에 대한 점수와 의견.
+
+    임시 저장 중에는 score가 null일 수 있다. 제출 시점에는 모든 활성 항목의
+    score가 채워져 있어야 한다.
+    """
+
+    response = models.ForeignKey(
+        EvaluationResponse,
+        on_delete=models.CASCADE,
+        related_name='answers',
+        verbose_name='평가지',
+    )
+    item = models.ForeignKey(
+        EvaluationItem, on_delete=models.PROTECT, related_name='answers', verbose_name='항목'
+    )
+    score = models.PositiveSmallIntegerField('점수', null=True, blank=True)
+    comment = models.TextField('의견', blank=True)
+    updated_at = models.DateTimeField('수정일시', auto_now=True)
+
+    class Meta:
+        verbose_name = '평가 답변'
+        verbose_name_plural = '평가 답변'
+        ordering = ['item__order', 'item_id']
+        constraints = [
+            models.UniqueConstraint(fields=['response', 'item'], name='uniq_answer_response_item'),
+            models.CheckConstraint(
+                condition=models.Q(score__isnull=True) | models.Q(score__gte=1),
+                name='answer_score_min',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.item.code}={self.score}'
+
+    def clean(self):
+        errors = {}
+        if self.score is not None and self.item_id:
+            if self.score < 1 or self.score > self.item.max_score:
+                errors['score'] = f'점수는 1 ~ {self.item.max_score} 사이여야 합니다.'
         if errors:
             raise ValidationError(errors)

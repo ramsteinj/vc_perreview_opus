@@ -100,30 +100,30 @@
 
 ### Backend
 
-- [ ] `EvaluationResponse`, `EvaluationAnswer` 모델 + 제약 조건
-- [ ] `GET /api/my/assignments/` (진행률 포함)
-- [ ] `POST /api/my/responses/` (get_or_create)
-- [ ] `GET/PUT /api/my/responses/{id}/` (부분 저장 upsert)
-- [ ] `POST /api/my/responses/{id}/submit/` (검증 + `select_for_update`)
-- [ ] 진행률 계산 (`services/progress.py`)
-- [ ] 중복 제출 방지 (DB 제약 + 서비스 검증 + 409)
+- [x] `EvaluationResponse`, `EvaluationAnswer` 모델 + 제약 조건
+- [x] `GET /api/my/assignments/` (진행률 포함)
+- [x] `POST /api/my/responses/` (get_or_create)
+- [x] `GET/PUT /api/my/responses/{id}/` (부분 저장 upsert)
+- [x] `POST /api/my/responses/{id}/submit/` (검증 + `select_for_update`)
+- [x] 진행률 계산 (`services/progress.py`)
+- [x] 중복 제출 방지 (DB 제약 + 서비스 검증 + 409)
 
 ### Frontend
 
-- [ ] `MyAssignmentsView.vue` (요약 카드, 진행률 바, 상태 배지)
-- [ ] `EvaluationFormView.vue` (라디오 점수, 가중치 표시, 의견)
-- [ ] 자동 저장 (3초 디바운스) + 수동 저장
-- [ ] 이탈 방지 가드
-- [ ] 제출 확인 모달 + 미입력 항목 하이라이트
-- [ ] 제출 후 읽기 전용 전환
-- [ ] `ProgressBar.vue`, `StatusBadge.vue`
+- [x] `MyAssignmentsView.vue` (요약 카드, 진행률 바, 상태 배지)
+- [x] `EvaluationFormView.vue` (라디오 점수, 가중치 표시, 의견)
+- [x] 자동 저장 (3초 디바운스) + 수동 저장
+- [x] 이탈 방지 가드
+- [x] 제출 확인 모달 + 미입력 항목 하이라이트
+- [x] 제출 후 읽기 전용 전환
+- [x] `ProgressBar.vue`, `StatusBadge.vue`
 
 ### 완료 조건
 
-- [ ] 임시 저장 후 재접속 시 입력이 복원된다
-- [ ] 제출 버튼 더블 클릭에도 평가지가 하나만 제출된다
-- [ ] 미입력 항목이 있으면 제출이 거부된다
-- [ ] 다른 사람의 평가지에 접근하면 403/404가 반환된다
+- [x] 임시 저장 후 재접속 시 입력이 복원된다
+- [x] 제출 버튼 더블 클릭에도 평가지가 하나만 제출된다
+- [x] 미입력 항목이 있으면 제출이 거부된다
+- [x] 다른 사람의 평가지에 접근하면 403/404가 반환된다
 
 ---
 
@@ -227,7 +227,7 @@
 | 1. 기반 구축 | ✅ 완료 | 2026-09-16 |
 | 2. 마스터 데이터 | ✅ 완료 | 2026-09-16 |
 | 3. 평가 설정 | ✅ 완료 | 2026-09-16 |
-| 4. 평가 응답 | ⬜ 미착수 | |
+| 4. 평가 응답 | ✅ 완료 | 2026-09-16 |
 | 5. 현황 모니터링 | ⬜ 미착수 | |
 | 6. 점수 산출 | ⬜ 미착수 | |
 | 7. CSV + 마무리 | ⬜ 미착수 | |

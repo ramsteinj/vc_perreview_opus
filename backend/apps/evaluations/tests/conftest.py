@@ -86,3 +86,60 @@ def make_items(cycle, target_type=TargetType.EMPLOYEE, weights=(50, 30, 20)):
 def full_items(cycle):
     """가중치 합계가 100인 개인 평가 항목 3개."""
     return make_items(cycle)
+
+
+@pytest.fixture
+def open_cycle(cycle, full_items):
+    """가중치 100을 채우고 OPEN 상태로 만든 회차."""
+    from apps.evaluations.models import CycleStatus
+
+    cycle.status = CycleStatus.OPEN
+    cycle.save()
+    return cycle
+
+
+@pytest.fixture
+def assignment(open_cycle, member, manager):
+    """김철수(대상) ← 박팀장(1차). 2차 없음."""
+    from apps.evaluations.models import EvaluatorAssignment, TargetType
+
+    return EvaluatorAssignment.objects.create(
+        cycle=open_cycle,
+        target_type=TargetType.EMPLOYEE,
+        target_user=member,
+        primary_evaluator=manager,
+    )
+
+
+@pytest.fixture
+def assignment_with_secondary(open_cycle, member, manager, director):
+    from apps.evaluations.models import EvaluatorAssignment, TargetType
+
+    return EvaluatorAssignment.objects.create(
+        cycle=open_cycle,
+        target_type=TargetType.EMPLOYEE,
+        target_user=member,
+        primary_evaluator=manager,
+        secondary_evaluator=director,
+    )
+
+
+@pytest.fixture
+def manager_client(db, manager):
+    client = APIClient()
+    login(client, '박팀장', '20180001', 'managerPass1!')
+    return client
+
+
+@pytest.fixture
+def director_client(db, director):
+    client = APIClient()
+    login(client, '최본부장', '20150001', 'directorPass1!')
+    return client
+
+
+@pytest.fixture
+def member_client(db, member):
+    client = APIClient()
+    login(client, '김철수', '20230001', 'memberPass1!')
+    return client

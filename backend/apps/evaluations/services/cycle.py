@@ -178,9 +178,10 @@ def reopen_cycle(cycle):
 
 
 def _count_pending_responses(cycle):
-    """미제출 평가지 수. EvaluationResponse는 Phase 4에서 추가된다."""
-    if not hasattr(cycle, 'responses'):
-        return 0
-    from ..models import ResponseStatus  # pragma: no cover - Phase 4
+    """미제출 평가지 수 (미시작 + 임시저장).
 
-    return cycle.responses.exclude(status=ResponseStatus.SUBMITTED).count()
+    분모는 배정에서 도출되는 기대 응답 수다 (specs/05-admin-features.md FR-A-06).
+    """
+    from .progress import pending_responses
+
+    return pending_responses(cycle)

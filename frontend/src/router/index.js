@@ -17,6 +17,12 @@ const routes = [
     meta: { title: '내 평가' },
   },
   {
+    path: '/my/evaluations/:id',
+    name: 'my-evaluation-form',
+    component: () => import('@/views/employee/EvaluationFormView.vue'),
+    meta: { title: '평가 작성' },
+  },
+  {
     path: '/admin',
     component: () => import('@/components/AdminLayout.vue'),
     meta: { role: 'ADMIN' },
