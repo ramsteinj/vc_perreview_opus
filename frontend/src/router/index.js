@@ -64,6 +64,12 @@ const routes = [
         component: () => import('@/views/admin/AssignmentEditorView.vue'),
         meta: { role: 'ADMIN', title: '평가자 배정' },
       },
+      {
+        path: 'cycles/:id/status',
+        name: 'admin-cycle-status',
+        component: () => import('@/views/admin/ResponseStatusView.vue'),
+        meta: { role: 'ADMIN', title: '응답 현황' },
+      },
     ],
   },
   {

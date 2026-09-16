@@ -15,7 +15,6 @@ const navGroups = [
     label: '평가 운영',
     items: [
       { name: 'admin-cycles', label: '평가 회차', icon: '🗓️', ready: true },
-      { name: null, label: '응답 현황', icon: '📈', ready: false, phase: 'Phase 5' },
       { name: null, label: '점수 산출', icon: '🧮', ready: false, phase: 'Phase 6' },
     ],
   },
