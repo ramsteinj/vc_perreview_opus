@@ -5,6 +5,7 @@ import * as adminApi from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
 import BaseModal from '@/components/BaseModal.vue'
 import DataTable from '@/components/DataTable.vue'
+import UserImportModal from '@/components/UserImportModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 
@@ -49,6 +50,12 @@ const form = reactive({
 const resetModal = reactive({ open: false, busy: false, error: '', target: null, password: '' })
 const deactivateModal = reactive({ open: false, busy: false, error: '', target: null })
 const credentialModal = reactive({ open: false, title: '', employeeNo: '', password: '' })
+const importModalOpen = ref(false)
+
+async function onImported(result) {
+  toasts.success(`${result.created_count}명을 등록했습니다.`)
+  await Promise.all([load(), loadReferenceData()])
+}
 
 const isSelf = (row) => row.id === auth.user?.id
 
@@ -318,7 +325,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="d-flex justify-content-end mb-3">
+    <div class="d-flex justify-content-end gap-2 mb-3">
+      <button class="btn btn-outline-primary btn-sm" type="button" @click="importModalOpen = true">
+        CSV 일괄 등록
+      </button>
       <button class="btn btn-primary btn-sm" type="button" @click="openCreate">
         + 사용자 추가
       </button>
@@ -389,6 +399,8 @@ onMounted(() => {
         </DataTable>
       </div>
     </div>
+
+    <UserImportModal v-model="importModalOpen" @imported="onImported" />
 
     <!-- 생성 / 수정 -->
     <BaseModal

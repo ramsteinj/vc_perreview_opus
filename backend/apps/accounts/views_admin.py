@@ -7,8 +7,10 @@ from django.db.models.deletion import RestrictedError
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from . import csv_import
 from .filters import DepartmentFilter, UserFilter
 from .models import Department, Role, User
 from .permissions import IsAdminRole
@@ -16,6 +18,7 @@ from .serializers_admin import (
     AdminUserCreateSerializer,
     AdminUserListSerializer,
     AdminUserUpdateSerializer,
+    BulkImportSerializer,
     DepartmentSerializer,
     DepartmentTreeSerializer,
     ResetPasswordSerializer,
@@ -323,6 +326,36 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             user.employee_no,
         )
         return Response(AdminUserListSerializer(user).data)
+
+    @extend_schema(
+        summary='CSV 일괄 등록',
+        request={'multipart/form-data': BulkImportSerializer},
+        description=(
+            f'컬럼: {", ".join(csv_import.COLUMNS)}\n\n'
+            '검증 실패 행이 하나라도 있으면 전체를 롤백하고 사유를 반환한다. '
+            '성공 시 생성된 사용자와 임시 비밀번호를 1회 반환한다.'
+        ),
+    )
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='bulk-import',
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def bulk_import(self, request):
+        serializer = BulkImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        upload = serializer.validated_data['file']
+        result = csv_import.bulk_import(upload.read())
+
+        audit.info(
+            '[AUDIT] actor=%s action=user_bulk_import created=%s rows=%s',
+            request.user.employee_no,
+            result['created_count'],
+            result['total_rows'],
+        )
+        return Response(result, status=status.HTTP_201_CREATED)
 
     @extend_schema(summary='선택 항목용 사용자 요약 목록', filters=False)
     @action(detail=False, methods=['get'])

@@ -220,3 +220,18 @@ class ResetPasswordSerializer(serializers.Serializer):
     def validate_password(self, value):
         password_validation.validate_password(value, self.context.get('target_user'))
         return value
+
+
+class BulkImportSerializer(serializers.Serializer):
+    """CSV 일괄 등록 업로드."""
+
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if value.size == 0:
+            raise serializers.ValidationError('빈 파일입니다.')
+        if value.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError('파일 크기는 5MB를 넘을 수 없습니다.')
+        if not value.name.lower().endswith('.csv'):
+            raise serializers.ValidationError('CSV 파일만 업로드할 수 있습니다.')
+        return value

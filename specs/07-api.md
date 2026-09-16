@@ -202,7 +202,7 @@
 | GET/POST | `/admin/users/` | 사용자 목록/생성 |
 | GET/PATCH/DELETE | `/admin/users/{id}/` | 사용자 상세/수정/비활성화 |
 | POST | `/admin/users/{id}/reset-password/` | 비밀번호 초기화 |
-| POST | `/admin/users/bulk-import/` | CSV 일괄 등록 (선택 구현) |
+| POST | `/admin/users/bulk-import/` | CSV 일괄 등록 (multipart) |
 
 ### GET `/admin/users/`
 

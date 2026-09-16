@@ -50,6 +50,14 @@ export function resetUserPassword(id, password) {
   return client.post(`/admin/users/${id}/reset-password/`, password ? { password } : {})
 }
 
+export function bulkImportUsers(file) {
+  const form = new FormData()
+  form.append('file', file)
+  return client.post('/admin/users/bulk-import/', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
 export function fetchRoles() {
   return client.get('/admin/roles/')
 }
