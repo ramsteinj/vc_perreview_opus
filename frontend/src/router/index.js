@@ -17,10 +17,30 @@ const routes = [
     meta: { title: '내 평가' },
   },
   {
-    path: '/admin/dashboard',
-    name: 'admin-dashboard',
-    component: () => import('@/views/admin/DashboardView.vue'),
-    meta: { role: 'ADMIN', title: '대시보드' },
+    path: '/admin',
+    component: () => import('@/components/AdminLayout.vue'),
+    meta: { role: 'ADMIN' },
+    children: [
+      { path: '', redirect: () => ({ name: 'admin-dashboard' }) },
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: () => import('@/views/admin/DashboardView.vue'),
+        meta: { role: 'ADMIN', title: '대시보드' },
+      },
+      {
+        path: 'departments',
+        name: 'admin-departments',
+        component: () => import('@/views/admin/DepartmentListView.vue'),
+        meta: { role: 'ADMIN', title: '부서 관리' },
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: () => import('@/views/admin/UserListView.vue'),
+        meta: { role: 'ADMIN', title: '사용자 관리' },
+      },
+    ],
   },
   {
     path: '/account/password',

@@ -44,24 +44,24 @@
 
 ### Backend
 
-- [ ] `DepartmentViewSet` (트리 조회 포함)
-- [ ] `UserViewSet` (생성/수정/소프트 삭제/비밀번호 초기화)
-- [ ] `IsAdminRole` 권한 클래스
-- [ ] 마지막 관리자 비활성화 차단
-- [ ] 필터/검색/페이지네이션
+- [x] `DepartmentViewSet` (트리 조회 포함)
+- [x] `UserViewSet` (생성/수정/소프트 삭제/비밀번호 초기화)
+- [x] `IsAdminRole` 권한 클래스
+- [x] 마지막 관리자 비활성화 차단
+- [x] 필터/검색/페이지네이션
 
 ### Frontend
 
-- [ ] `AdminLayout.vue` + 사이드 내비게이션
-- [ ] `DepartmentListView.vue` (트리 표시, 생성/수정/삭제)
-- [ ] `UserListView.vue` (목록/검색/필터/생성/수정/비활성화)
-- [ ] `DataTable.vue`, `BaseModal.vue`, `ToastHost.vue` 공용 컴포넌트
+- [x] `AdminLayout.vue` + 사이드 내비게이션
+- [x] `DepartmentListView.vue` (트리 표시, 생성/수정/삭제)
+- [x] `UserListView.vue` (목록/검색/필터/생성/수정/비활성화)
+- [x] `DataTable.vue`, `BaseModal.vue`, `ToastHost.vue` 공용 컴포넌트
 
 ### 완료 조건
 
-- [ ] 부서 트리를 만들고 직원을 소속시킬 수 있다
-- [ ] 순환 참조 부서 생성이 차단된다
-- [ ] 생성한 직원 계정으로 로그인된다
+- [x] 부서 트리를 만들고 직원을 소속시킬 수 있다
+- [x] 순환 참조 부서 생성이 차단된다
+- [x] 생성한 직원 계정으로 로그인된다
 
 ---
 
@@ -225,7 +225,7 @@
 | Phase | 상태 | 비고 |
 |-------|------|------|
 | 1. 기반 구축 | ✅ 완료 | 2026-09-16 |
-| 2. 마스터 데이터 | ⬜ 미착수 | |
+| 2. 마스터 데이터 | ✅ 완료 | 2026-09-16 |
 | 3. 평가 설정 | ⬜ 미착수 | |
 | 4. 평가 응답 | ⬜ 미착수 | |
 | 5. 현황 모니터링 | ⬜ 미착수 | |

@@ -16,6 +16,16 @@ class DomainError(APIException):
     default_code = 'DOMAIN_ERROR'
 
 
+class LastAdminError(DomainError):
+    default_detail = '마지막 관리자 계정의 권한을 해제하거나 비활성화할 수 없습니다.'
+    default_code = 'LAST_ADMIN'
+
+
+class SelfRoleDowngradeError(DomainError):
+    default_detail = '본인의 관리자 권한은 스스로 낮출 수 없습니다.'
+    default_code = 'SELF_ROLE_DOWNGRADE'
+
+
 def custom_exception_handler(exc, context):
     response = drf_exception_handler(exc, context)
     if response is None:
@@ -27,7 +37,11 @@ def custom_exception_handler(exc, context):
 
     if isinstance(exc, ValidationError):
         code = 'VALIDATION_ERROR'
-        if isinstance(detail, dict):
+        if isinstance(detail, dict) and 'code' in detail and 'detail' in detail:
+            # 시리얼라이저가 도메인 오류 봉투를 직접 넘긴 경우
+            code = _scalar(detail['code'])
+            message = _scalar(detail['detail'])
+        elif isinstance(detail, dict):
             fields = {k: v for k, v in detail.items() if k != 'detail'}
             message = '입력값을 확인해 주세요.'
         else:
@@ -46,6 +60,13 @@ def custom_exception_handler(exc, context):
         payload['fields'] = fields
     response.data = payload
     return response
+
+
+def _scalar(value):
+    """리스트로 감싸인 메시지를 평탄화한다."""
+    if isinstance(value, list | tuple) and value:
+        return value[0]
+    return value
 
 
 def _first_message(detail):
