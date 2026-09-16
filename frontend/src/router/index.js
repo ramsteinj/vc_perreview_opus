@@ -70,6 +70,18 @@ const routes = [
         component: () => import('@/views/admin/ResponseStatusView.vue'),
         meta: { role: 'ADMIN', title: '응답 현황' },
       },
+      {
+        path: 'cycles/:id/department-scores',
+        name: 'admin-cycle-department-scores',
+        component: () => import('@/views/admin/DepartmentScoreView.vue'),
+        meta: { role: 'ADMIN', title: '부서 성과 점수' },
+      },
+      {
+        path: 'cycles/:id/scores',
+        name: 'admin-cycle-scores',
+        component: () => import('@/views/admin/ScoreResultView.vue'),
+        meta: { role: 'ADMIN', title: '최종 점수' },
+      },
     ],
   },
   {

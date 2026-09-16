@@ -162,27 +162,27 @@
 
 ### Backend
 
-- [ ] `services/scoring.py` — 평가지 환산, 개인 점수, 부서 점수, 가감, 최종
-- [ ] `Decimal` + `ROUND_HALF_UP` 반올림 유틸
-- [ ] `ScoreResult` 모델
-- [ ] `POST /admin/cycles/{id}/calculate/` (멱등, 단일 트랜잭션)
-- [ ] `GET /admin/cycles/{id}/scores/`
-- [ ] `GET /admin/cycles/{id}/department-scores/`
-- [ ] 회차 `CLOSED` 전이 시 자동 산출
-- [ ] **[06-scoring.md](06-scoring.md) §9의 12개 테스트 케이스 전부 통과**
+- [x] `services/scoring.py` — 평가지 환산, 개인 점수, 부서 점수, 가감, 최종
+- [x] `Decimal` + `ROUND_HALF_UP` 반올림 유틸
+- [x] `ScoreResult` 모델
+- [x] `POST /admin/cycles/{id}/calculate/` (멱등, 단일 트랜잭션)
+- [x] `GET /admin/cycles/{id}/scores/`
+- [x] `GET /admin/cycles/{id}/department-scores/`
+- [x] 회차 `CLOSED` 전이 시 자동 산출
+- [x] **[06-scoring.md](06-scoring.md) §9의 12개 테스트 케이스 전부 통과**
 
 ### Frontend
 
-- [ ] `DepartmentScoreView.vue` (부서 점수 + 가감 파라미터 편집)
-- [ ] `ScoreResultView.vue` (재계산, 점수 테이블, 미산출 사유)
-- [ ] 산출 결과 요약 모달
+- [x] `DepartmentScoreView.vue` (부서 점수 + 가감 파라미터 편집)
+- [x] `ScoreResultView.vue` (재계산, 점수 테이블, 미산출 사유)
+- [x] 산출 결과 요약 모달
 
 ### 완료 조건
 
-- [ ] 최종 점수가 항상 0~100 범위에 있다
-- [ ] 재계산을 반복해도 결과가 같고 레코드가 중복되지 않는다
-- [ ] 2차 평가자 미지정 시 1차 점수가 100% 반영된다
-- [ ] 부서 평가 미제출 시 가감이 0이다
+- [x] 최종 점수가 항상 0~100 범위에 있다
+- [x] 재계산을 반복해도 결과가 같고 레코드가 중복되지 않는다
+- [x] 2차 평가자 미지정 시 1차 점수가 100% 반영된다
+- [x] 부서 평가 미제출 시 가감이 0이다
 
 ---
 
@@ -229,7 +229,7 @@
 | 3. 평가 설정 | ✅ 완료 | 2026-09-16 |
 | 4. 평가 응답 | ✅ 완료 | 2026-09-16 |
 | 5. 현황 모니터링 | ✅ 완료 | 2026-09-16 |
-| 6. 점수 산출 | ⬜ 미착수 | |
+| 6. 점수 산출 | ✅ 완료 | 2026-09-16 |
 | 7. CSV + 마무리 | ⬜ 미착수 | |
 
 > 각 Phase를 완료할 때 이 표와 [README.md](../README.md)의 진행 상황을 함께 갱신한다.

@@ -13,7 +13,6 @@ const stats = ref({ users: null, activeUsers: null, admins: null, departments: n
 const loading = ref(true)
 
 const upcoming = [
-  { phase: 'Phase 6', title: '부서 성과 점수 · 최종 점수 산출', spec: 'FR-A-08~09' },
   { phase: 'Phase 7', title: 'CSV 다운로드', spec: 'FR-A-07' },
 ]
 

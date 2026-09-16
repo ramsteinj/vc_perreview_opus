@@ -166,7 +166,11 @@ def close_cycle(cycle, *, confirm=False):
 
     cycle.status = CycleStatus.CLOSED
     cycle.save(update_fields=['status', 'updated_at'])
-    return {'pending_count': pending}
+
+    # 마감과 동시에 점수를 확정 산출한다 (specs/06-scoring.md §8)
+    calculation = _calculate_scores(cycle)
+
+    return {'pending_count': pending, 'calculation': calculation}
 
 
 def reopen_cycle(cycle):
@@ -185,3 +189,16 @@ def _count_pending_responses(cycle):
     from .progress import pending_responses
 
     return pending_responses(cycle)
+
+
+def _calculate_scores(cycle):
+    """마감 시 자동 점수 산출. reports 앱에 의존하므로 지연 임포트한다."""
+    from apps.reports.services.scoring import calculate_cycle
+
+    result = calculate_cycle(cycle)
+    return {
+        'total_targets': result.total_targets,
+        'calculated': result.calculated,
+        'skipped': result.skipped,
+        'skipped_reasons': result.skipped_reasons,
+    }

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -38,20 +40,22 @@ class EvaluationCycle(TimeStampedModel):
     )
 
     # 1차/2차 평가 반영 비율 (specs/06-scoring.md §3)
-    primary_weight = models.DecimalField('1차 반영비율', max_digits=5, decimal_places=2, default=70)
+    primary_weight = models.DecimalField(
+        '1차 반영비율', max_digits=5, decimal_places=2, default=Decimal('70.00')
+    )
     secondary_weight = models.DecimalField(
-        '2차 반영비율', max_digits=5, decimal_places=2, default=30
+        '2차 반영비율', max_digits=5, decimal_places=2, default=Decimal('30.00')
     )
 
     # 부서 성과 가감 파라미터 (specs/06-scoring.md §5)
     dept_baseline_score = models.DecimalField(
-        '부서 가감 기준점', max_digits=5, decimal_places=2, default=70
+        '부서 가감 기준점', max_digits=5, decimal_places=2, default=Decimal('70.00')
     )
     dept_adjust_factor = models.DecimalField(
-        '부서 가감 계수', max_digits=5, decimal_places=2, default=0.20
+        '부서 가감 계수', max_digits=5, decimal_places=2, default=Decimal('0.20')
     )
     dept_adjust_limit = models.DecimalField(
-        '부서 가감 한도', max_digits=5, decimal_places=2, default=10
+        '부서 가감 한도', max_digits=5, decimal_places=2, default=Decimal('10.00')
     )
 
     class Meta:

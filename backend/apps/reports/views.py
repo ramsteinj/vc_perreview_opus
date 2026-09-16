@@ -14,11 +14,21 @@ from apps.common.pagination import StandardPagination
 from apps.evaluations.models import (
     EvaluationCycle,
     EvaluationResponse,
+    EvaluatorAssignment,
     ResponseStatus,
+    TargetType,
 )
 from apps.evaluations.services import response as response_service
 
-from .serializers import AdminResponseDetailSerializer, ReopenSerializer
+from .models import ScoreResult
+from .serializers import (
+    AdjustParametersSerializer,
+    AdminResponseDetailSerializer,
+    DepartmentScoreRowSerializer,
+    ReopenSerializer,
+    ScoreResultSerializer,
+)
+from .services import scoring as scoring_service
 from .services import status as status_service
 
 audit = logging.getLogger('audit')
@@ -164,15 +174,123 @@ class AdminResponseViewSet(viewsets.GenericViewSet):
 
 
 def _has_score_result(response):
-    """이미 산출된 점수가 있으면 재산출이 필요하다 (ScoreResult는 Phase 6)."""
-    try:
-        from .models import ScoreResult
-    except ImportError:
-        return False
-
+    """이미 산출된 점수가 있으면 재산출이 필요하다."""
     target_user_id = response.assignment.target_user_id
     if target_user_id is None:
         return False
     return ScoreResult.objects.filter(
         cycle_id=response.assignment.cycle_id, user_id=target_user_id
     ).exists()
+
+
+@extend_schema(tags=['admin:scores'])
+class ScoreCalculateView(_CycleScopedView):
+    @extend_schema(
+        summary='점수 산출 / 재산출',
+        description='멱등하다. 같은 입력에 몇 번을 실행해도 같은 결과를 낸다.',
+    )
+    def post(self, request, pk):
+        cycle = self.get_cycle(pk)
+        result = scoring_service.calculate_cycle(cycle)
+
+        audit.info(
+            '[AUDIT] actor=%s action=score_calculate cycle=%s calculated=%s skipped=%s',
+            request.user.employee_no,
+            cycle.name,
+            result.calculated,
+            result.skipped,
+        )
+
+        from django.utils import timezone
+
+        return Response(
+            {
+                'cycle_id': cycle.id,
+                'calculated_at': timezone.now(),
+                'total_targets': result.total_targets,
+                'calculated': result.calculated,
+                'skipped': result.skipped,
+                'skipped_reasons': result.skipped_reasons,
+                'is_provisional': cycle.status != 'CLOSED',
+            }
+        )
+
+
+@extend_schema(tags=['admin:scores'])
+class ScoreListView(_CycleScopedView):
+    @extend_schema(
+        summary='최종 점수 목록',
+        parameters=[
+            OpenApiParameter('department', int),
+            OpenApiParameter('search', str, description='성명 · 사번'),
+            OpenApiParameter('ordering', str, description='final_score / individual_score 등'),
+        ],
+    )
+    def get(self, request, pk):
+        cycle = self.get_cycle(pk)
+
+        queryset = ScoreResult.objects.filter(cycle=cycle).select_related('user', 'department')
+
+        department = request.query_params.get('department')
+        if department:
+            queryset = queryset.filter(department_id=department)
+
+        search = request.query_params.get('search')
+        if search:
+            from django.db.models import Q
+
+            queryset = queryset.filter(
+                Q(user__name__icontains=search) | Q(user__employee_no__icontains=search)
+            )
+
+        allowed = {
+            'final_score',
+            'individual_score',
+            'department_score',
+            'user__employee_no',
+            'user__name',
+        }
+        ordering = request.query_params.get('ordering', '-final_score')
+        if ordering.lstrip('-') not in allowed:
+            ordering = '-final_score'
+        queryset = queryset.order_by(ordering, 'user__employee_no')
+
+        # 산출되지 않은 대상을 함께 알려줘야 화면이 전체 그림을 보여줄 수 있다
+        expected = EvaluatorAssignment.objects.filter(
+            cycle=cycle, target_type=TargetType.EMPLOYEE
+        ).count()
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        data = paginator.get_paginated_response(ScoreResultSerializer(page, many=True).data)
+        data.data['total_targets'] = expected
+        data.data['not_calculated'] = max(
+            expected - ScoreResult.objects.filter(cycle=cycle).count(), 0
+        )
+        data.data['is_provisional'] = cycle.status != 'CLOSED'
+        return data
+
+
+@extend_schema(tags=['admin:scores'])
+class DepartmentScoreView(_CycleScopedView):
+    @extend_schema(summary='부서 성과 점수 목록')
+    def get(self, request, pk):
+        cycle = self.get_cycle(pk)
+        rows = scoring_service.department_score_rows(cycle)
+
+        parameters = AdjustParametersSerializer(
+            {
+                'baseline': cycle.dept_baseline_score,
+                'factor': cycle.dept_adjust_factor,
+                'limit': cycle.dept_adjust_limit,
+            }
+        ).data
+
+        return Response(
+            {
+                'cycle_id': cycle.id,
+                'parameters': parameters,
+                'count': len(rows),
+                'results': DepartmentScoreRowSerializer(rows, many=True).data,
+            }
+        )

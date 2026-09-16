@@ -295,6 +295,13 @@ onMounted(load)
                 >
                   현황
                 </RouterLink>
+                <RouterLink
+                  v-if="cycle.status !== 'DRAFT'"
+                  class="btn btn-outline-dark btn-sm me-1"
+                  :to="{ name: 'admin-cycle-scores', params: { id: cycle.id } }"
+                >
+                  점수
+                </RouterLink>
                 <button
                   v-if="cycle.status === 'DRAFT'"
                   class="btn btn-success btn-sm me-1"

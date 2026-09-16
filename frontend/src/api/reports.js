@@ -19,3 +19,16 @@ export function fetchAdminResponse(id) {
 export function reopenResponse(id, reason) {
   return client.post(`/admin/responses/${id}/reopen/`, reason ? { reason } : {})
 }
+
+// ── 점수 산출 ────────────────────────────────────────────────
+export function calculateScores(cycleId) {
+  return client.post(`/admin/cycles/${cycleId}/calculate/`)
+}
+
+export function fetchScores(cycleId, params = {}) {
+  return client.get(`/admin/cycles/${cycleId}/scores/`, { params })
+}
+
+export function fetchDepartmentScores(cycleId) {
+  return client.get(`/admin/cycles/${cycleId}/department-scores/`)
+}
