@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 
 import { fetchDepartments } from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
+import { downloadCycleCsv } from '@/api/download'
 import { fetchCycle } from '@/api/evaluations'
 import * as api from '@/api/reports'
 import BaseModal from '@/components/BaseModal.vue'
@@ -33,6 +34,7 @@ const departments = ref([])
 let searchTimer = null
 
 const resultModal = reactive({ open: false, data: null })
+const downloading = ref(false)
 
 const REASON_LABELS = {
   PRIMARY_NOT_SUBMITTED: '1차 평가 미제출',
@@ -126,6 +128,23 @@ watch(
   }
 )
 
+/** 화면에 적용된 필터 그대로 내려받는다. */
+async function downloadCsv() {
+  downloading.value = true
+  try {
+    const params = {}
+    if (filters.department) params.department = filters.department
+    if (filters.search) params.search = filters.search
+
+    const filename = await downloadCycleCsv(cycleId, 'scores', params)
+    toasts.success(`${filename} 다운로드를 시작했습니다.`)
+  } catch (error) {
+    toasts.error(extractErrorMessage(error, 'CSV 다운로드에 실패했습니다.'))
+  } finally {
+    downloading.value = false
+  }
+}
+
 async function recalculate() {
   recalculating.value = true
   try {
@@ -171,6 +190,15 @@ onMounted(async () => {
         >
           ← 부서 성과 점수
         </RouterLink>
+        <button
+          class="btn btn-outline-success btn-sm"
+          type="button"
+          :disabled="downloading"
+          @click="downloadCsv"
+        >
+          <span v-if="downloading" class="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+          CSV 다운로드
+        </button>
         <button
           class="btn btn-primary btn-sm"
           type="button"

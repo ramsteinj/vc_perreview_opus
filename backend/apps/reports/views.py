@@ -2,6 +2,7 @@
 
 import logging
 
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status as http_status
 from rest_framework import viewsets
@@ -28,6 +29,7 @@ from .serializers import (
     ReopenSerializer,
     ScoreResultSerializer,
 )
+from .services import csv_export
 from .services import scoring as scoring_service
 from .services import status as status_service
 
@@ -293,4 +295,66 @@ class DepartmentScoreView(_CycleScopedView):
                 'count': len(rows),
                 'results': DepartmentScoreRowSerializer(rows, many=True).data,
             }
+        )
+
+
+@extend_schema(tags=['admin:export'])
+class CsvExportView(_CycleScopedView):
+    """CSV 내보내기 (specs/05-admin-features.md FR-A-07).
+
+    화면 필터와 동일한 파라미터를 지원해, 보고 있던 조건 그대로 내려받을 수 있다.
+    """
+
+    throttle_scope = 'export'
+
+    EXPORTS = {
+        'scores': (csv_export.stream_scores_csv, '점수', ('department', 'search')),
+        'responses': (
+            csv_export.stream_responses_csv,
+            '응답상세',
+            ('department', 'status', 'target_type', 'search'),
+        ),
+        'pending': (csv_export.stream_pending_csv, '미응답자', ('department', 'search')),
+    }
+
+    @extend_schema(
+        summary='CSV 다운로드',
+        parameters=[
+            OpenApiParameter(
+                'kind',
+                str,
+                location=OpenApiParameter.PATH,
+                description='scores / responses / pending',
+            ),
+            OpenApiParameter('department', int),
+            OpenApiParameter('status', str),
+            OpenApiParameter('target_type', str),
+            OpenApiParameter('search', str),
+        ],
+        responses={(200, 'text/csv'): OpenApiTypes.STR},
+    )
+    def get(self, request, pk, kind):
+        if kind not in self.EXPORTS:
+            return Response(
+                {'code': 'UNKNOWN_EXPORT', 'detail': '지원하지 않는 내보내기 종류입니다.'},
+                status=http_status.HTTP_404_NOT_FOUND,
+            )
+
+        cycle = self.get_cycle(pk)
+        stream, suffix, allowed = self.EXPORTS[kind]
+
+        filters = {
+            key: request.query_params[key] for key in allowed if request.query_params.get(key)
+        }
+
+        audit.info(
+            '[AUDIT] actor=%s action=csv_export kind=%s cycle=%s filters=%s',
+            request.user.employee_no,
+            kind,
+            cycle.name,
+            filters or '{}',
+        )
+
+        return csv_export.streaming_response(
+            stream(cycle, **filters), csv_export.build_filename(cycle, suffix)
         )

@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 
 import { fetchDepartments } from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
+import { downloadCycleCsv } from '@/api/download'
 import { fetchCycle } from '@/api/evaluations'
 import * as api from '@/api/reports'
 import BaseModal from '@/components/BaseModal.vue'
@@ -39,6 +40,7 @@ const filters = reactive({ department: '', status: '', round: '', target_type: '
 const departments = ref([])
 let searchTimer = null
 
+const downloading = ref(false)
 const viewModal = reactive({ open: false, loading: false, data: null })
 const reopenModal = reactive({ open: false, busy: false, error: '', target: null, reason: '' })
 
@@ -179,6 +181,28 @@ function togglePending(evaluatorId) {
   expanded.value = next
 }
 
+/** 현재 탭과 필터에 맞는 CSV를 내려받는다. */
+async function downloadCsv() {
+  downloading.value = true
+  try {
+    const kind = tab.value === 'pending' ? 'pending' : 'responses'
+    const params = kind === 'pending'
+      ? Object.fromEntries(
+          Object.entries({ department: filters.department, search: filters.search }).filter(
+            ([, value]) => value
+          )
+        )
+      : activeFilterParams()
+
+    const filename = await downloadCycleCsv(cycleId, kind, params)
+    toasts.success(`${filename} 다운로드를 시작했습니다.`)
+  } catch (error) {
+    toasts.error(extractErrorMessage(error, 'CSV 다운로드에 실패했습니다.'))
+  } finally {
+    downloading.value = false
+  }
+}
+
 // ── 평가지 열람 / 반려 ──────────────────────────────────────
 async function openView(responseId) {
   if (!responseId) return
@@ -248,9 +272,21 @@ onMounted(async () => {
           <StatusBadge v-if="cycle" :status="cycle.status" class="ms-1" />
         </h2>
       </div>
-      <p v-if="summary" class="small mb-0" :class="daysLeftClass">
-        마감 {{ summary.cycle.ends_on }} · {{ daysLeftLabel }}
-      </p>
+      <div class="d-flex align-items-center gap-3">
+        <p v-if="summary" class="small mb-0" :class="daysLeftClass">
+          마감 {{ summary.cycle.ends_on }} · {{ daysLeftLabel }}
+        </p>
+        <button
+          v-if="tab !== 'summary'"
+          class="btn btn-outline-success btn-sm"
+          type="button"
+          :disabled="downloading"
+          @click="downloadCsv"
+        >
+          <span v-if="downloading" class="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+          {{ tab === 'pending' ? '미응답자' : '응답상세' }} CSV
+        </button>
+      </div>
     </div>
 
     <ul class="nav nav-tabs">

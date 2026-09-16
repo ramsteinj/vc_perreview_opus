@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     AdminResponseViewSet,
+    CsvExportView,
     DepartmentScoreView,
     ScoreCalculateView,
     ScoreListView,
@@ -26,6 +27,11 @@ urlpatterns = [
         'cycles/<int:pk>/department-scores/',
         DepartmentScoreView.as_view(),
         name='department-score-list',
+    ),
+    path(
+        'cycles/<int:pk>/export/<str:kind>.csv',
+        CsvExportView.as_view(),
+        name='csv-export',
     ),
     *router.urls,
 ]

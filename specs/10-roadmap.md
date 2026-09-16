@@ -192,31 +192,31 @@
 
 ### Backend
 
-- [ ] `services/csv_export.py` (`StreamingHttpResponse`, UTF-8 BOM)
-- [ ] `export/scores.csv`, `export/responses.csv`, `export/pending.csv`
-- [ ] 한글 파일명 인코딩 (`filename*=UTF-8''`)
-- [ ] CSV 내보내기 요청 제한
-- [ ] 감사 로그
-- [ ] `GET /api/health/`
+- [x] `services/csv_export.py` (`StreamingHttpResponse`, UTF-8 BOM)
+- [x] `export/scores.csv`, `export/responses.csv`, `export/pending.csv`
+- [x] 한글 파일명 인코딩 (`filename*=UTF-8''`)
+- [x] CSV 내보내기 요청 제한
+- [x] 감사 로그
+- [x] `GET /api/health/`
 
 ### Frontend
 
-- [ ] 각 화면에 CSV 다운로드 버튼
-- [ ] `DashboardView.vue` (회차 현황 요약 + 바로가기)
-- [ ] 403 / 404 화면
-- [ ] 기본 비밀번호 변경 안내 배너
+- [x] 각 화면에 CSV 다운로드 버튼
+- [x] `DashboardView.vue` (회차 현황 요약 + 바로가기)
+- [x] 403 / 404 화면
+- [x] 기본 비밀번호 변경 안내 배너
 
 ### 마무리
 
-- [ ] `ruff`, `eslint` 통과
-- [ ] 테스트 커버리지 80% 이상, `scoring.py` 100%
-- [ ] `README.md` 실행 방법 검증 (빈 환경에서 처음부터 따라해 보기)
-- [ ] 운영 설정 점검 (`DEBUG=False`, HTTPS, CORS, `SECRET_KEY`)
+- [x] `ruff`, `eslint` 통과
+- [x] 테스트 커버리지 80% 이상, `scoring.py` 100%
+- [x] `README.md` 실행 방법 검증 (빈 환경에서 처음부터 따라해 보기)
+- [x] 운영 설정 점검 (`DEBUG=False`, HTTPS, CORS, `SECRET_KEY`)
 
 ### 완료 조건
 
-- [ ] Excel에서 CSV를 열었을 때 한글이 깨지지 않는다
-- [ ] 1000명 규모 데이터에서 CSV 다운로드가 5초 이내에 끝난다
+- [x] Excel에서 CSV를 열었을 때 한글이 깨지지 않는다
+- [x] 1000명 규모 데이터에서 CSV 다운로드가 5초 이내에 끝난다
 
 ---
 
@@ -230,6 +230,6 @@
 | 4. 평가 응답 | ✅ 완료 | 2026-09-16 |
 | 5. 현황 모니터링 | ✅ 완료 | 2026-09-16 |
 | 6. 점수 산출 | ✅ 완료 | 2026-09-16 |
-| 7. CSV + 마무리 | ⬜ 미착수 | |
+| 7. CSV + 마무리 | ✅ 완료 | 2026-09-16 |
 
 > 각 Phase를 완료할 때 이 표와 [README.md](../README.md)의 진행 상황을 함께 갱신한다.

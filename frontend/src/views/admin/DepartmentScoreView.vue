@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { extractErrorMessage } from '@/api/client'
+import { downloadCycleCsv } from '@/api/download'
 import { fetchCycle, updateCycle } from '@/api/evaluations'
 import * as api from '@/api/reports'
 import BaseModal from '@/components/BaseModal.vue'
@@ -18,6 +19,7 @@ const rows = ref([])
 const parameters = ref(null)
 const loading = ref(true)
 const recalculating = ref(false)
+const downloading = ref(false)
 
 const paramModal = reactive({
   open: false,
@@ -93,6 +95,18 @@ async function submitParams() {
   }
 }
 
+async function downloadCsv() {
+  downloading.value = true
+  try {
+    const filename = await downloadCycleCsv(cycleId, 'scores')
+    toasts.success(`${filename} 다운로드를 시작했습니다.`)
+  } catch (error) {
+    toasts.error(extractErrorMessage(error, 'CSV 다운로드에 실패했습니다.'))
+  } finally {
+    downloading.value = false
+  }
+}
+
 async function recalculate() {
   recalculating.value = true
   try {
@@ -128,6 +142,15 @@ onMounted(load)
         >
           최종 점수 →
         </RouterLink>
+        <button
+          class="btn btn-outline-success btn-sm"
+          type="button"
+          :disabled="downloading"
+          @click="downloadCsv"
+        >
+          <span v-if="downloading" class="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+          CSV 다운로드
+        </button>
         <button
           class="btn btn-primary btn-sm"
           type="button"
