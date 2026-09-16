@@ -11,30 +11,30 @@
 
 ### Backend
 
-- [ ] Django 프로젝트 생성 (`config/settings/{base,dev,prod}.py` 분리)
-- [ ] PostgreSQL 연결 (`docker-compose.yml`, `DATABASE_URL`)
-- [ ] `accounts` 앱: `Department`, `User(AbstractUser)`, `UserManager`
-- [ ] `AUTH_USER_MODEL = 'accounts.User'` 설정 후 **최초 마이그레이션**
-- [ ] 커스텀 인증 백엔드 (`EmployeeNoNameBackend`)
-- [ ] SimpleJWT 설정 + 커스텀 클레임
-- [ ] `POST /api/auth/login/`, `/refresh/`, `/logout/`, `GET /me/`
-- [ ] 기본 관리자 부트스트랩 (`post_migrate` 시그널 + 관리 명령)
-- [ ] 로그인 시도 제한
-- [ ] `drf-spectacular` 스키마 노출
+- [x] Django 프로젝트 생성 (`config/settings/{base,dev,prod}.py` 분리)
+- [x] PostgreSQL 연결 (`docker-compose.yml`, `DATABASE_URL`)
+- [x] `accounts` 앱: `Department`, `User(AbstractUser)`, `UserManager`
+- [x] `AUTH_USER_MODEL = 'accounts.User'` 설정 후 **최초 마이그레이션**
+- [x] 커스텀 인증 백엔드 (`EmployeeNoNameBackend`)
+- [x] SimpleJWT 설정 + 커스텀 클레임
+- [x] `POST /api/auth/login/`, `/refresh/`, `/logout/`, `GET /me/`
+- [x] 기본 관리자 부트스트랩 (`post_migrate` 시그널 + 관리 명령)
+- [x] 로그인 시도 제한
+- [x] `drf-spectacular` 스키마 노출
 
 ### Frontend
 
-- [ ] Vite + Vue 3 프로젝트 생성, `/api` 프록시 설정
-- [ ] Bootstrap 5 npm 설치 + SCSS 커스터마이즈
-- [ ] `stores/auth.js`, `api/client.js` (인터셉터 포함)
-- [ ] `LoginView.vue`
-- [ ] 라우터 + 내비게이션 가드 + 레이아웃 셸
+- [x] Vite + Vue 3 프로젝트 생성, `/api` 프록시 설정
+- [x] Bootstrap 5 npm 설치 + SCSS 커스터마이즈
+- [x] `stores/auth.js`, `api/client.js` (인터셉터 포함)
+- [x] `LoginView.vue`
+- [x] 라우터 + 내비게이션 가드 + 레이아웃 셸
 
 ### 완료 조건
 
-- [ ] 빈 DB에 `migrate` 후 `ADMIN / ADMIN / admin1234!`로 로그인된다
-- [ ] 새로고침해도 로그인 상태가 유지된다
-- [ ] 성명을 틀리면 로그인이 실패한다
+- [x] 빈 DB에 `migrate` 후 `ADMIN / ADMIN / admin1234!`로 로그인된다
+- [x] 새로고침해도 로그인 상태가 유지된다
+- [x] 성명을 틀리면 로그인이 실패한다
 
 ---
 
@@ -224,7 +224,7 @@
 
 | Phase | 상태 | 비고 |
 |-------|------|------|
-| 1. 기반 구축 | ⬜ 미착수 | |
+| 1. 기반 구축 | ✅ 완료 | 2026-09-16 |
 | 2. 마스터 데이터 | ⬜ 미착수 | |
 | 3. 평가 설정 | ⬜ 미착수 | |
 | 4. 평가 응답 | ⬜ 미착수 | |

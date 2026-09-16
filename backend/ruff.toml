@@ -1,0 +1,19 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "C4", "DJ"]
+ignore = [
+    "E501",   # line-length는 formatter가 처리한다
+    "B008",   # DRF/Django에서 흔한 호출 기본값 패턴
+]
+
+[lint.per-file-ignores]
+"*/migrations/*" = ["E", "F", "I"]
+"config/settings/*" = ["F403", "F405"]
+
+[lint.isort]
+known-first-party = ["apps", "config"]
+
+[format]
+quote-style = "single"

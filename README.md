@@ -48,7 +48,7 @@ PostgreSQL
 ### 사전 요구사항
 
 - Python 3.11+
-- Node.js 20+
+- Node.js 18.18+ (Vite 5 기준)
 - Docker (PostgreSQL 구동용) 또는 로컬 PostgreSQL 15+
 
 ### 1. 데이터베이스
@@ -57,13 +57,16 @@ PostgreSQL
 docker compose up -d
 ```
 
+> 호스트에 이미 PostgreSQL이 떠 있는 경우가 많아 컨테이너는 **5433** 포트로 노출한다.
+> `DATABASE_URL`의 포트도 5433이다.
+
 ### 2. 백엔드
 
 ```bash
 cd backend
-python -m venv .venv
+python -m venv .venv               # python3-venv가 없으면: uv venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt    # uv 사용 시: uv pip install -r requirements.txt
 cp .env.example .env
 python manage.py migrate           # 이 시점에 기본 관리자 계정이 자동 생성된다
 python manage.py runserver         # http://localhost:8000
@@ -153,7 +156,7 @@ API 문서(개발 환경): http://localhost:8000/api/schema/swagger-ui/
 
 | Phase | 내용 | 상태 |
 |-------|------|------|
-| 1 | 기반 구축 (프로젝트 설정 · 인증 · 기본 관리자) | ⬜ 미착수 |
+| 1 | 기반 구축 (프로젝트 설정 · 인증 · 기본 관리자) | ✅ 완료 |
 | 2 | 마스터 데이터 관리 (부서 · 사용자) | ⬜ 미착수 |
 | 3 | 평가 설정 (회차 · 항목 · 가중치 · 평가자 배정) | ⬜ 미착수 |
 | 4 | 평가 응답 (작성 · 임시저장 · 진행률 · 제출) | ⬜ 미착수 |
@@ -161,4 +164,5 @@ API 문서(개발 환경): http://localhost:8000/api/schema/swagger-ui/
 | 6 | 점수 산출 (개인 · 부서 · 최종 합산) | ⬜ 미착수 |
 | 7 | CSV 내보내기 및 마무리 | ⬜ 미착수 |
 
-현재 단계: **요구사항 명세 완료. Phase 1 착수 대기.**
+현재 단계: **Phase 1 완료.** 로그인 · JWT 인증 · 기본 관리자 자동 생성이 동작합니다.
+Phase 2(부서 · 사용자 관리) 착수 대기.
