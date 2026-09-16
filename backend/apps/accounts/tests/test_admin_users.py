@@ -404,3 +404,104 @@ def test_다른_관리자가_마지막_관리자를_강등해도_차단된다(ad
     # 이제 other가 마지막 관리자 -> 스스로도, 남도 강등할 수 없다
     res = other_client.patch(f'{URL}{other.id}/', {'role': Role.EMPLOYEE}, format='json')
     assert res.status_code == 409
+
+
+# ── 진행 중 회차 평가자 배정 경고 (FR-A-02) ────────────────────
+
+
+def test_진행중_회차_평가자를_비활성화하면_경고한다(admin_client, department):
+    from apps.evaluations.models import (
+        EvaluationCycle,
+        EvaluationItem,
+        EvaluatorAssignment,
+        TargetType,
+    )
+
+    evaluator = User.objects.create_user(
+        employee_no='20180001', name='박팀장', password='managerPass1!', department=department
+    )
+    target = User.objects.create_user(
+        employee_no='20230001', name='김철수', password='memberPass1!', department=department
+    )
+    cycle = EvaluationCycle.objects.create(
+        name='2026 상반기', year=2026, starts_on='2026-09-01', ends_on='2026-09-30'
+    )
+    EvaluationItem.objects.create(
+        cycle=cycle, target_type=TargetType.EMPLOYEE, code='A', title='A', weight=100
+    )
+    EvaluatorAssignment.objects.create(
+        cycle=cycle,
+        target_type=TargetType.EMPLOYEE,
+        target_user=target,
+        primary_evaluator=evaluator,
+    )
+    admin_client.post(f'/api/admin/cycles/{cycle.id}/open/?confirm=true')
+
+    res = admin_client.delete(f'{URL}{evaluator.id}/')
+
+    assert res.status_code == 409
+    assert res.data['code'] == 'EVALUATOR_IN_OPEN_CYCLE'
+    assert len(res.data['assignments']) == 1
+    assert res.data['assignments'][0]['round'] == 'PRIMARY'
+
+    evaluator.refresh_from_db()
+    assert evaluator.is_active is True
+
+
+def test_force면_경고를_무시하고_비활성화한다(admin_client, department):
+    from apps.evaluations.models import (
+        EvaluationCycle,
+        EvaluationItem,
+        EvaluatorAssignment,
+        TargetType,
+    )
+
+    evaluator = User.objects.create_user(
+        employee_no='20180002', name='이팀장', password='managerPass1!', department=department
+    )
+    target = User.objects.create_user(
+        employee_no='20230002', name='박영희', password='memberPass1!', department=department
+    )
+    cycle = EvaluationCycle.objects.create(
+        name='2026 상반기', year=2026, starts_on='2026-09-01', ends_on='2026-09-30'
+    )
+    EvaluationItem.objects.create(
+        cycle=cycle, target_type=TargetType.EMPLOYEE, code='A', title='A', weight=100
+    )
+    EvaluatorAssignment.objects.create(
+        cycle=cycle,
+        target_type=TargetType.EMPLOYEE,
+        target_user=target,
+        primary_evaluator=evaluator,
+    )
+    admin_client.post(f'/api/admin/cycles/{cycle.id}/open/?confirm=true')
+
+    res = admin_client.delete(f'{URL}{evaluator.id}/?force=true')
+
+    assert res.status_code == 200
+    evaluator.refresh_from_db()
+    assert evaluator.is_active is False
+
+
+def test_DRAFT_회차_배정은_경고하지_않는다(admin_client, department):
+    from apps.evaluations.models import EvaluationCycle, EvaluatorAssignment, TargetType
+
+    evaluator = User.objects.create_user(
+        employee_no='20180003', name='정팀장', password='managerPass1!', department=department
+    )
+    target = User.objects.create_user(
+        employee_no='20230003', name='최민수', password='memberPass1!', department=department
+    )
+    cycle = EvaluationCycle.objects.create(
+        name='준비중 회차', year=2026, starts_on='2026-09-01', ends_on='2026-09-30'
+    )
+    EvaluatorAssignment.objects.create(
+        cycle=cycle,
+        target_type=TargetType.EMPLOYEE,
+        target_user=target,
+        primary_evaluator=evaluator,
+    )
+
+    res = admin_client.delete(f'{URL}{evaluator.id}/')
+
+    assert res.status_code == 200

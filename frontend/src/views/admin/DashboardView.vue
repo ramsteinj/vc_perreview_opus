@@ -13,7 +13,6 @@ const stats = ref({ users: null, activeUsers: null, admins: null, departments: n
 const loading = ref(true)
 
 const upcoming = [
-  { phase: 'Phase 3', title: '평가 회차 · 항목 · 가중치 · 평가자 배정', spec: 'FR-A-04~05, FR-A-10' },
   { phase: 'Phase 4', title: '직원 평가 응답 (임시저장 · 진행률 · 제출)', spec: 'FR-E-02~06' },
   { phase: 'Phase 5', title: '응답 현황 모니터링 (요약 · 상세 · 미응답자)', spec: 'FR-A-06' },
   { phase: 'Phase 6', title: '부서 성과 점수 · 최종 점수 산출', spec: 'FR-A-08~09' },
@@ -105,6 +104,9 @@ onMounted(async () => {
             </RouterLink>
             <RouterLink class="list-group-item list-group-item-action" :to="{ name: 'admin-users' }">
               👥 사용자 관리 <span class="text-muted small">계정 등록·수정</span>
+            </RouterLink>
+            <RouterLink class="list-group-item list-group-item-action" :to="{ name: 'admin-cycles' }">
+              🗓️ 평가 회차 <span class="text-muted small">항목·가중치·평가자 배정</span>
             </RouterLink>
           </div>
         </div>

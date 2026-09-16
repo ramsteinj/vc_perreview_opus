@@ -40,6 +40,24 @@ const routes = [
         component: () => import('@/views/admin/UserListView.vue'),
         meta: { role: 'ADMIN', title: '사용자 관리' },
       },
+      {
+        path: 'cycles',
+        name: 'admin-cycles',
+        component: () => import('@/views/admin/CycleListView.vue'),
+        meta: { role: 'ADMIN', title: '평가 회차' },
+      },
+      {
+        path: 'cycles/:id/items',
+        name: 'admin-cycle-items',
+        component: () => import('@/views/admin/ItemEditorView.vue'),
+        meta: { role: 'ADMIN', title: '평가 항목 · 가중치' },
+      },
+      {
+        path: 'cycles/:id/assignments',
+        name: 'admin-cycle-assignments',
+        component: () => import('@/views/admin/AssignmentEditorView.vue'),
+        meta: { role: 'ADMIN', title: '평가자 배정' },
+      },
     ],
   },
   {

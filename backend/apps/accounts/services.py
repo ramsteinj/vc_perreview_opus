@@ -41,3 +41,22 @@ def is_last_active_admin(user):
     if user.role != Role.ADMIN or not user.is_active:
         return False
     return count_active_admins(exclude_pk=user.pk) == 0
+
+
+def open_cycle_assignments(user):
+    """진행 중(OPEN) 회차에서 이 사용자가 평가자로 배정된 건 목록.
+
+    사용자를 비활성화하면 해당 평가가 진행되지 않으므로 경고 근거로 쓴다.
+    """
+    from apps.evaluations.services.assignment import assignments_for_user
+
+    return [
+        {
+            'assignment_id': a.id,
+            'cycle_name': a.cycle.name,
+            'target_name': a.target_name,
+            'target_type': a.target_type,
+            'round': 'PRIMARY' if a.primary_evaluator_id == user.pk else 'SECONDARY',
+        }
+        for a in assignments_for_user(user, only_open=True)
+    ]

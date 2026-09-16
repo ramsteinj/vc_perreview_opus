@@ -20,7 +20,11 @@ from .serializers_admin import (
     DepartmentTreeSerializer,
     ResetPasswordSerializer,
 )
-from .services import generate_temporary_password, is_last_active_admin
+from .services import (
+    generate_temporary_password,
+    is_last_active_admin,
+    open_cycle_assignments,
+)
 
 audit = logging.getLogger('audit')
 
@@ -197,7 +201,10 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary='사용자 삭제(비활성화)',
         description='기본은 비활성화다. 평가 이력이 없는 사용자만 `?hard=true`로 물리 삭제된다.',
-        parameters=[OpenApiParameter('hard', bool, description='물리 삭제 여부')],
+        parameters=[
+            OpenApiParameter('hard', bool, description='물리 삭제 여부'),
+            OpenApiParameter('force', bool, description='진행 중 회차 배정 경고를 무시한다.'),
+        ],
     )
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
@@ -208,6 +215,22 @@ class AdminUserViewSet(viewsets.ModelViewSet):
                 {
                     'code': 'LAST_ADMIN',
                     'detail': '마지막 관리자 계정은 비활성화할 수 없습니다.',
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # 진행 중 회차의 평가자로 배정되어 있으면 경고한다 (FR-A-02)
+        force = request.query_params.get('force') == 'true'
+        open_assignments = open_cycle_assignments(user)
+        if open_assignments and not force:
+            return Response(
+                {
+                    'code': 'EVALUATOR_IN_OPEN_CYCLE',
+                    'detail': (
+                        f'진행 중인 회차에서 평가자로 배정된 건이 {len(open_assignments)}건 있습니다. '
+                        '비활성화하면 해당 평가가 진행되지 않습니다.'
+                    ),
+                    'assignments': open_assignments,
                 },
                 status=status.HTTP_409_CONFLICT,
             )

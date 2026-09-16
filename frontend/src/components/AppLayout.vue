@@ -16,6 +16,7 @@ const navItems = computed(() => {
       { name: 'admin-dashboard', label: '대시보드', icon: '📊' },
       { name: 'admin-departments', label: '부서', icon: '🏢' },
       { name: 'admin-users', label: '사용자', icon: '👥' },
+      { name: 'admin-cycles', label: '평가 회차', icon: '🗓️' },
     ]
   }
   return [{ name: 'my-evaluations', label: '내 평가', icon: '📝' }]
@@ -100,7 +101,7 @@ async function handleLogout() {
     </main>
 
     <footer class="border-top py-3 text-center text-muted small bg-white">
-      인사평가 시스템 · Phase 2 (마스터 데이터 관리)
+      인사평가 시스템 · Phase 3 (평가 설정)
     </footer>
   </div>
 </template>

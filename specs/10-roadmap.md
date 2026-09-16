@@ -71,26 +71,26 @@
 
 ### Backend
 
-- [ ] `EvaluationCycle` 모델 + ViewSet + 상태 전이 액션
-- [ ] `EvaluationItem` 모델 + ViewSet + `reorder` + `weight-check`
-- [ ] 가중치 합계 100 검증 (OPEN 전이 시)
-- [ ] 사용 중 항목 변경 차단
-- [ ] `EvaluatorAssignment` 모델 + ViewSet + `bulk` 배정
-- [ ] 자기 평가 / 1·2차 중복 검증
-- [ ] 항목 복제 (`clone-items`)
+- [x] `EvaluationCycle` 모델 + ViewSet + 상태 전이 액션
+- [x] `EvaluationItem` 모델 + ViewSet + `reorder` + `weight-check`
+- [x] 가중치 합계 100 검증 (OPEN 전이 시)
+- [x] 사용 중 항목 변경 차단
+- [x] `EvaluatorAssignment` 모델 + ViewSet + `bulk` 배정
+- [x] 자기 평가 / 1·2차 중복 검증
+- [x] 항목 복제 (`clone-items`)
 
 ### Frontend
 
-- [ ] `CycleListView.vue` (생성/수정/상태 전이)
-- [ ] `ItemEditorView.vue` (탭, 인라인 편집, 가중치 합계 실시간 표시, 드래그 정렬)
-- [ ] `AssignmentEditorView.vue` (1차/2차 선택, 미배정 요약, 일괄 배정)
-- [ ] `UserSelect.vue`
+- [x] `CycleListView.vue` (생성/수정/상태 전이)
+- [x] `ItemEditorView.vue` (탭, 인라인 편집, 가중치 합계 실시간 표시, 드래그 정렬)
+- [x] `AssignmentEditorView.vue` (1차/2차 선택, 미배정 요약, 일괄 배정)
+- [x] `UserSelect.vue`
 
 ### 완료 조건
 
-- [ ] 가중치 합계가 100이 아니면 OPEN 전이가 거부된다
-- [ ] 2차 평가자 없이 배정을 저장할 수 있다
-- [ ] 본인을 본인의 평가자로 지정하면 거부된다
+- [x] 가중치 합계가 100이 아니면 OPEN 전이가 거부된다
+- [x] 2차 평가자 없이 배정을 저장할 수 있다
+- [x] 본인을 본인의 평가자로 지정하면 거부된다
 
 ---
 
@@ -226,7 +226,7 @@
 |-------|------|------|
 | 1. 기반 구축 | ✅ 완료 | 2026-09-16 |
 | 2. 마스터 데이터 | ✅ 완료 | 2026-09-16 |
-| 3. 평가 설정 | ⬜ 미착수 | |
+| 3. 평가 설정 | ✅ 완료 | 2026-09-16 |
 | 4. 평가 응답 | ⬜ 미착수 | |
 | 5. 현황 모니터링 | ⬜ 미착수 | |
 | 6. 점수 산출 | ⬜ 미착수 | |
