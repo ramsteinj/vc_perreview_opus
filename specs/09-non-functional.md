@@ -117,6 +117,11 @@ class AlreadySubmitted(DomainError):
 | 가중치 | 합계 100 검증, 사용 중 항목 변경 차단 |
 | CSV | BOM 확인, 쉼표 포함 값 이스케이프 |
 
+### E2E
+
+브라우저 흐름은 Playwright로 검증한다. 구성·실행·작성 규칙은
+[11-e2e-testing.md](11-e2e-testing.md) 참조.
+
 ### 도구
 
 - `pytest` + `pytest-django` + `pytest-cov`

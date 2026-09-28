@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 import { changePassword } from '@/api/auth'
 import { extractErrorMessage } from '@/api/client'
+import { homeRouteFor } from '@/router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 
@@ -31,7 +32,10 @@ async function handleSubmit() {
     })
     await auth.loadProfile()
     toasts.success('비밀번호가 변경되었습니다.')
-    router.back()
+    // 앱 안에서 넘어온 경우에만 뒤로 간다. 주소를 직접 열었으면 뒤로 가기가
+    // 앱 밖(이전 문서)으로 나가 전체 새로고침이 일어나고 안내 토스트가 사라진다.
+    if (window.history.state?.back) router.back()
+    else router.push(homeRouteFor(auth.user))
   } catch (error) {
     errorMessage.value = extractErrorMessage(error)
   } finally {

@@ -150,6 +150,7 @@ npm run dev                        # http://localhost:5173
 | [specs/08-frontend.md](specs/08-frontend.md) | 화면 구성, 라우팅, 상태 관리 |
 | [specs/09-non-functional.md](specs/09-non-functional.md) | 보안 · 성능 · 테스트 · 운영 |
 | [specs/10-roadmap.md](specs/10-roadmap.md) | 구현 단계 및 체크리스트 |
+| [specs/11-e2e-testing.md](specs/11-e2e-testing.md) | Playwright + Chrome E2E 테스트 가이드 |
 
 ## 프로젝트 구조
 
@@ -164,8 +165,11 @@ vc_perreview_opus/
 │       ├── accounts/      # 사용자 · 부서 · 인증
 │       ├── evaluations/   # 회차 · 항목 · 배정 · 응답
 │       └── reports/       # 현황 집계 · 평가지 반려 · 점수 산출 · CSV
-└── frontend/              # Vue 3 SPA
-    └── src/{views,components,stores,api,router}/
+├── frontend/              # Vue 3 SPA
+│   └── src/{views,components,stores,api,router}/
+└── tests/                 # Playwright E2E
+    ├── e2e/*.spec.js      # 시나리오
+    └── e2e/support/       # API 헬퍼 · fixture
 ```
 
 ## 개발 명령어
@@ -182,6 +186,22 @@ npm run lint                                    # 린트
 ```
 
 API 문서(개발 환경): http://localhost:8000/api/schema/swagger-ui/
+
+## E2E 테스트
+
+Playwright로 브라우저에서 실제 사용자 흐름을 검증합니다. 전용 DB(`perreview_e2e`)와
+포트(백엔드 8001, 프론트엔드 5174)를 쓰므로 개발 서버를 띄워 둔 채로 실행해도 됩니다.
+
+```bash
+docker compose up -d              # DB만 떠 있으면 된다
+cd tests
+npm install
+npm run install:browsers          # Chromium (sudo 불필요)
+npm test                          # 53개 시나리오, 병렬 실행
+```
+
+실제 Google Chrome으로 돌리려면 `sudo npx playwright install chrome` 후 `npm run test:chrome`.
+자세한 내용은 [specs/11-e2e-testing.md](specs/11-e2e-testing.md)를 참고하세요.
 
 ## 진행 상황
 

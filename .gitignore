@@ -22,6 +22,12 @@ node_modules/
 npm-debug.log*
 .vite/
 
+# ── E2E (Playwright) ────────────────────────────
+/tests/test-results/
+/tests/playwright-report/
+/tests/blob-report/
+/tests/.auth/
+
 # ── Editor / OS ─────────────────────────────────
 .idea/
 .vscode/*

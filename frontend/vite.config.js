@@ -22,7 +22,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // E2E는 별도 포트의 백엔드를 쓴다 (specs/11-e2e-testing.md)
+        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8000',
         changeOrigin: true,
       },
     },

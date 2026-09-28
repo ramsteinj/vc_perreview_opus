@@ -27,6 +27,7 @@
 | 화면·라우팅·상태 | [specs/08-frontend.md](specs/08-frontend.md) |
 | 보안·성능·테스트 | [specs/09-non-functional.md](specs/09-non-functional.md) |
 | 구현 순서 | [specs/10-roadmap.md](specs/10-roadmap.md) |
+| **E2E 테스트** | [specs/11-e2e-testing.md](specs/11-e2e-testing.md) |
 
 스펙과 코드가 어긋나면 **스펙이 기준이다.** 스펙을 바꿔야 한다고 판단되면
 코드를 먼저 고치지 말고 스펙 변경을 제안한다.
@@ -41,6 +42,7 @@ backend/
   apps/reports/       현황 집계, 점수 산출 결과, CSV
 frontend/
   src/{views,components,stores,api,router}/
+tests/                Playwright E2E (e2e/*.spec.js, e2e/support/)
 specs/                요구사항 명세
 ```
 
@@ -144,6 +146,11 @@ cd frontend
 npm run dev
 npm run build
 npm run lint
+
+# E2E (DB 컨테이너가 떠 있어야 한다. 서버는 Playwright가 8001/5174에 띄운다)
+cd tests
+npm test                          # Chromium
+npm run test:chrome               # Google Chrome
 ```
 
 기본 관리자: 성명 `ADMIN` / 사번 `ADMIN` / 비밀번호 `admin1234!`
@@ -155,6 +162,10 @@ npm run lint
 - 점수 계산, 중복 제출, 권한, 가중치 검증을 바꾸면 테스트를 함께 갱신한다
 - 테스트 DB는 PostgreSQL을 쓴다. SQLite로 대체하지 않는다 (제약 동작이 다르다)
 - 기능을 완료하면 관련 테스트를 실행하고 **결과를 있는 그대로 보고한다**
+- 화면 흐름을 바꾸면 E2E(`tests/`)도 함께 갱신한다. 작성 규칙은
+  [specs/11-e2e-testing.md](specs/11-e2e-testing.md) §5 — 준비는 API, 검증은 UI,
+  고유 데이터(`uid()`), 전역 개수 단언 금지, 로그인은 `loginAs`
+- 새 E2E 테스트는 `--repeat-each=5`로 flaky가 아닌지 확인한다
 
 ## 작업 방식
 

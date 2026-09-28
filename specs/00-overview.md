@@ -74,6 +74,7 @@
 | [08-frontend.md](08-frontend.md) | 화면 구성, 라우팅, 상태 관리 |
 | [09-non-functional.md](09-non-functional.md) | 비기능 요구사항 (보안/성능/운영) |
 | [10-roadmap.md](10-roadmap.md) | 구현 단계 및 체크리스트 |
+| [11-e2e-testing.md](11-e2e-testing.md) | Playwright + Chrome E2E 테스트 가이드 |
 
 ## 6. 범위 밖 (Out of Scope)
 
