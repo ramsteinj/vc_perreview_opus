@@ -1,0 +1,88 @@
+# Render Blueprint (specs/12-deploy-render.md)
+#
+# 구성: 정적 사이트(Vue) + 웹 서비스(Django API) + PostgreSQL, 모두 무료 플랜
+#
+#   브라우저 ──▶ vc-perreview      (정적 사이트, CDN, 잠들지 않음)
+#            └─▶ vc-perreview-api  (웹 서비스, 15분 무활동 시 잠듦)
+#                     └─▶ vc-perreview-db (Postgres, 생성 30일 후 만료)
+#
+# 서비스 이름이 이미 쓰이고 있으면 Render가 주소 뒤에 임의 문자열을 붙인다.
+# 그 경우 배포 후 VITE_API_BASE_URL과 CORS_ALLOWED_ORIGINS를 실제 주소로 고친다.
+
+databases:
+  - name: vc-perreview-db
+    plan: free
+    region: singapore          # 한국에서 가장 가까운 리전. API와 같은 리전이어야 내부 연결을 쓴다
+    databaseName: perreview
+    user: perreview
+    postgresMajorVersion: "16" # 로컬 docker-compose와 같은 버전
+
+services:
+  # ── Django API ─────────────────────────────────────────────
+  - type: web
+    name: vc-perreview-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    # 무료 플랜에는 pre-deploy 명령이 없어 시작할 때 마이그레이션한다.
+    # 마이그레이션 직후 post_migrate 시그널이 관리자 계정이 없으면 생성한다.
+    # 워커를 1개로 두는 이유: 로그인 시도 제한 카운터가 프로세스 메모리(LocMem)에 있어
+    # 워커가 여러 개면 제한이 워커 수만큼 느슨해진다. 무료 인스턴스 CPU도 0.1이다.
+    startCommand: >-
+      python manage.py migrate --no-input &&
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /api/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3          # Render 기본값(3.14)은 고정한 의존성과 맞지 않는다
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vc-perreview-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://vc-perreview.onrender.com
+      # 최초 관리자(성명 ADMIN, 사번 ADMIN)의 비밀번호. Blueprint 생성 시 입력한다
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+
+  # ── Vue SPA ────────────────────────────────────────────────
+  - type: web
+    name: vc-perreview
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # 빌드 시 번들에 들어간다. 바꾸면 정적 사이트를 다시 배포해야 한다
+      - key: VITE_API_BASE_URL
+        value: https://vc-perreview-api.onrender.com/api
+      # 잠든 API가 깨는 데 약 1분 걸리므로 첫 요청이 타임아웃되지 않게 90초로 둔다
+      - key: VITE_API_TIMEOUT
+        value: "90000"
+    routes:
+      # Vue Router(history 모드)의 새로고침·직접 진입 처리
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # 파일명에 해시가 붙은 빌드 산출물은 오래 캐시한다
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

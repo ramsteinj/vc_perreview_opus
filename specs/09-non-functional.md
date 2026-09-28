@@ -171,6 +171,19 @@ class AlreadySubmitted(DomainError):
 
 ### 배포
 
+**Render (현재 채택)** — [12-deploy-render.md](12-deploy-render.md)
+
+```
+Frontend:  Render Static Site (CDN)       VITE_API_BASE_URL로 API 주소 주입
+Backend:   Render Web Service (gunicorn)  WhiteNoise로 Django Admin 정적 파일 서빙
+DB:        Render Postgres 16
+```
+
+- 프론트엔드와 API가 다른 도메인이다. CORS 허용 출처를 명시하고 `Content-Disposition`을 노출한다
+- 무료 플랜 제약(DB 30일 만료, 웹 서비스 잠듦)과 대응은 12-deploy-render.md §2 참조
+
+**자체 서버 (Nginx 단일 도메인)**
+
 ```
 Frontend:  npm run build  →  dist/  →  Nginx 정적 서빙
 Backend:   gunicorn config.wsgi  (Nginx 리버스 프록시)
@@ -179,7 +192,7 @@ DB:        PostgreSQL 15+
 ```
 
 - SPA 라우팅을 위해 Nginx에 `try_files $uri $uri/ /index.html;` 설정
-- `/api`와 `/admin`은 gunicorn으로 프록시
+- `/api`와 `/admin`은 gunicorn으로 프록시 (같은 도메인이라 CORS 불필요, `VITE_API_BASE_URL` 비워 둠)
 
 ### 헬스체크
 

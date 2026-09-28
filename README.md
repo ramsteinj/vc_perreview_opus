@@ -151,6 +151,7 @@ npm run dev                        # http://localhost:5173
 | [specs/09-non-functional.md](specs/09-non-functional.md) | 보안 · 성능 · 테스트 · 운영 |
 | [specs/10-roadmap.md](specs/10-roadmap.md) | 구현 단계 및 체크리스트 |
 | [specs/11-e2e-testing.md](specs/11-e2e-testing.md) | Playwright + Chrome E2E 테스트 가이드 |
+| [specs/12-deploy-render.md](specs/12-deploy-render.md) | Render 무료 플랜 배포 가이드 |
 
 ## 프로젝트 구조
 
@@ -158,6 +159,7 @@ npm run dev                        # http://localhost:5173
 vc_perreview_opus/
 ├── CLAUDE.md              # AI 코딩 가이드
 ├── README.md
+├── render.yaml            # Render Blueprint
 ├── specs/                 # 요구사항 명세
 ├── backend/               # Django REST Framework
 │   ├── config/            # 프로젝트 설정
@@ -186,6 +188,26 @@ npm run lint                                    # 린트
 ```
 
 API 문서(개발 환경): http://localhost:8000/api/schema/swagger-ui/
+
+## 배포 (Render 무료 플랜)
+
+저장소 루트의 `render.yaml`로 Render에 한 번에 배포합니다.
+
+1. Render 대시보드 → **New + → Blueprint** → 이 저장소 선택
+2. `DEFAULT_ADMIN_PASSWORD`(최초 관리자 비밀번호) 입력 → **Apply**
+3. `https://vc-perreview.onrender.com`에서 `ADMIN` / `ADMIN` / 입력한 비밀번호로 로그인
+
+| 리소스 | 유형 |
+|--------|------|
+| `vc-perreview` | 정적 사이트 (Vue) |
+| `vc-perreview-api` | 웹 서비스 (Django) |
+| `vc-perreview-db` | Postgres 16 |
+
+> ⚠️ **무료 Postgres는 생성 30일 후 만료되고 14일 뒤 삭제됩니다.** 만료 전에 백업해야 합니다.
+> 무료 웹 서비스는 15분 무활동 시 잠들어 첫 요청이 1분가량 걸립니다.
+
+주소가 다르게 배정됐을 때의 조치, 백업·복원, 문제 해결은
+[specs/12-deploy-render.md](specs/12-deploy-render.md)를 참고하세요.
 
 ## E2E 테스트
 

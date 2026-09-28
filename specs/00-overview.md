@@ -75,6 +75,7 @@
 | [09-non-functional.md](09-non-functional.md) | 비기능 요구사항 (보안/성능/운영) |
 | [10-roadmap.md](10-roadmap.md) | 구현 단계 및 체크리스트 |
 | [11-e2e-testing.md](11-e2e-testing.md) | Playwright + Chrome E2E 테스트 가이드 |
+| [12-deploy-render.md](12-deploy-render.md) | Render 무료 플랜 배포 가이드 |
 
 ## 6. 범위 밖 (Out of Scope)
 

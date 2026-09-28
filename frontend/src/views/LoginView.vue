@@ -1,8 +1,9 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { extractErrorCode, extractErrorMessage } from '@/api/client'
+import { wakeServer } from '@/api/system'
 import { homeRouteFor } from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -23,6 +24,8 @@ const fieldErrors = computed(() => ({
 }))
 
 const hasFieldError = computed(() => Object.values(fieldErrors.value).some(Boolean))
+
+onMounted(wakeServer)
 
 async function handleSubmit() {
   touched.value = true

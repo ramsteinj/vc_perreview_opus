@@ -57,6 +57,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# 프론트엔드가 다른 도메인일 때(운영) 브라우저 JS가 CSV 파일명을 읽을 수 있게 노출한다
+CORS_EXPOSE_HEADERS = ['Content-Disposition']
+
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 

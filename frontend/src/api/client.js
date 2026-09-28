@@ -3,8 +3,12 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const client = axios.create({
-  baseURL: '/api',
-  timeout: 15000,
+  // 개발: Vite 프록시를 거치는 '/api'
+  // 운영: 다른 도메인의 API를 직접 호출한다 (빌드 시 VITE_API_BASE_URL로 주입)
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  // Render 무료 플랜은 15분 무활동 시 잠들고 깨는 데 약 1분이 걸린다.
+  // 운영에서는 VITE_API_TIMEOUT으로 늘려 첫 요청이 타임아웃되지 않게 한다
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 15000,
   headers: { 'Content-Type': 'application/json' },
 })
 

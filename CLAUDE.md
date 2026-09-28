@@ -28,6 +28,7 @@
 | 보안·성능·테스트 | [specs/09-non-functional.md](specs/09-non-functional.md) |
 | 구현 순서 | [specs/10-roadmap.md](specs/10-roadmap.md) |
 | **E2E 테스트** | [specs/11-e2e-testing.md](specs/11-e2e-testing.md) |
+| 배포 (Render) | [specs/12-deploy-render.md](specs/12-deploy-render.md) |
 
 스펙과 코드가 어긋나면 **스펙이 기준이다.** 스펙을 바꿔야 한다고 판단되면
 코드를 먼저 고치지 말고 스펙 변경을 제안한다.
@@ -44,6 +45,7 @@ frontend/
   src/{views,components,stores,api,router}/
 tests/                Playwright E2E (e2e/*.spec.js, e2e/support/)
 specs/                요구사항 명세
+render.yaml           Render Blueprint (무료 플랜: 정적 사이트 + 웹 서비스 + Postgres)
 ```
 
 ## 반드시 지킬 것
@@ -109,6 +111,7 @@ BOM(`﻿`)이 없으면 Excel에서 한글이 깨진다. `StreamingHttpResponse`
 ### 8. 시크릿을 커밋하지 않는다
 
 `.env`는 `.gitignore`에 있다. `.env.example`만 커밋한다.
+`render.yaml`에도 값을 적지 않는다 — `generateValue` 또는 `sync: false`로 둔다.
 
 ## 코드 규약
 
