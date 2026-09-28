@@ -91,7 +91,7 @@ test('1차 평가가 없는 대상은 미산출 사유와 함께 보고된다', 
   )
 })
 
-test('점수 CSV는 UTF-8 BOM으로 시작하고 한글 파일명과 최종 점수를 담는다', async ({ page, api, loginAs }) => {
+test('점수 CSV는 UTF-8 BOM으로 시작하고 한글 파일명과 최종 점수를 담는다', async ({ page, api, loginAs }, testInfo) => {
   const { cycle, target } = await seedSpecExample(api)
   await api.calculate(cycle.id)
   await loginAs(undefined, `/admin/cycles/${cycle.id}/scores`)
@@ -103,7 +103,10 @@ test('점수 CSV는 UTF-8 BOM으로 시작하고 한글 파일명과 최종 점�
 
   expect(download.suggestedFilename()).toMatch(/_점수_\d{8}\.csv$/)
 
-  const bytes = await readFile(await download.path())
+  // download.path()는 원격 브라우저에 연결해 실행하면 쓸 수 없다. saveAs()는 어디서나 동작한다
+  const saved = testInfo.outputPath(download.suggestedFilename())
+  await download.saveAs(saved)
+  const bytes = await readFile(saved)
   // BOM(EF BB BF)이 없으면 Excel에서 한글이 깨진다
   expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
 

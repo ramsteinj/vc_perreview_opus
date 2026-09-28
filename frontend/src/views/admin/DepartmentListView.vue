@@ -9,8 +9,32 @@ import { useToastStore } from '@/stores/toast'
 const toasts = useToastStore()
 
 const tree = ref([])
-const flat = ref([])
 const loading = ref(false)
+
+/**
+ * 트리를 평면 목록으로 편다 (상위 부서 id 포함).
+ * 트리 API는 페이지네이션 없이 전체를 주므로, 목록 API(최대 200건)를 따로 부르지 않는다.
+ * 따로 부르던 시절에는 부서가 200개를 넘으면 상위 부서 선택지에서 빠졌다.
+ */
+const flat = computed(() => {
+  const result = []
+  const walk = (nodes, parent) => {
+    nodes.forEach((node) => {
+      result.push({
+        id: node.id,
+        code: node.code,
+        name: node.name,
+        is_active: node.is_active,
+        parent,
+        member_count: node.member_count,
+        child_count: (node.children ?? []).length,
+      })
+      walk(node.children ?? [], node.id)
+    })
+  }
+  walk(tree.value, null)
+  return result.sort((a, b) => a.code.localeCompare(b.code))
+})
 const showInactive = ref(true)
 
 const editModal = reactive({ open: false, busy: false, error: '', mode: 'create', id: null })
@@ -48,12 +72,8 @@ const visibleRows = computed(() => {
 async function load() {
   loading.value = true
   try {
-    const [treeRes, flatRes] = await Promise.all([
-      adminApi.fetchDepartmentTree(),
-      adminApi.fetchDepartments({ page_size: 200 }),
-    ])
-    tree.value = treeRes.data.results
-    flat.value = flatRes.data.results
+    const { data } = await adminApi.fetchDepartmentTree()
+    tree.value = data.results
   } catch (error) {
     toasts.error(extractErrorMessage(error))
   } finally {

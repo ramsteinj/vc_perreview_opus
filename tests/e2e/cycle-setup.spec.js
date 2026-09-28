@@ -6,6 +6,17 @@ function rowByFirstCell(page, text) {
   return page.locator('tbody tr').filter({ has: page.locator('td:first-child', { hasText: text }) })
 }
 
+/**
+ * 회차 목록에서 해당 회차 행을 찾는다. 목록은 페이지로 나뉘므로
+ * 위치에 기대지 않고 회차명으로 검색해 좁힌다.
+ */
+async function cycleRow(page, name) {
+  await page.getByLabel('회차명 검색').fill(name)
+  const row = rowByFirstCell(page, name)
+  await expect(row).toBeVisible()
+  return row
+}
+
 async function addItem(page, { code, title, weight }) {
   await page.getByRole('button', { name: '+ 항목 추가' }).click()
   const modal = dialog(page, '평가 항목 추가')
@@ -28,7 +39,7 @@ test('회차를 만든다', async ({ page, loginAs }) => {
   await modal.getByRole('button', { name: '저장' }).click()
 
   await expect(toast(page, '회차를 생성했습니다.')).toBeVisible()
-  await expect(rowByFirstCell(page, name)).toContainText('준비중')
+  await expect(await cycleRow(page, name)).toContainText('준비중')
 })
 
 test('가중치 합계가 100이 아니면 경고가 보이고 회차를 열 수 없다', async ({ page, api, loginAs }) => {
@@ -42,10 +53,11 @@ test('가중치 합계가 100이 아니면 경고가 보이고 회차를 열 수
   await expect(page.getByText('합계가 100%가 아니면 이 회차를 열 수 없습니다.')).toBeVisible()
 
   await page.goto('/admin/cycles')
-  await rowByFirstCell(page, cycle.name).getByRole('button', { name: '열기' }).click()
+  const row = await cycleRow(page, cycle.name)
+  await row.getByRole('button', { name: '열기' }).click()
 
   await expect(toast(page, '가중치 합계가 100이 아닙니다')).toContainText('80.00%')
-  await expect(rowByFirstCell(page, cycle.name)).toContainText('준비중')
+  await expect(row).toContainText('준비중')
 })
 
 test('가중치를 100으로 맞추면 합계 배지가 정상으로 바뀐다', async ({ page, api, loginAs }) => {
@@ -96,12 +108,13 @@ test('미배정 대상이 있으면 확인을 받은 뒤 회차가 열린다', a
   await api.createStandardItems(cycle.id)
   await loginAs(undefined, '/admin/cycles')
 
-  await rowByFirstCell(page, cycle.name).getByRole('button', { name: '열기' }).click()
+  const row = await cycleRow(page, cycle.name)
+  await row.getByRole('button', { name: '열기' }).click()
 
   const confirm = dialog(page, '미배정 대상이 있습니다')
   await expect(confirm).toContainText('미배정 직원')
   await confirm.getByRole('button', { name: '진행' }).click()
 
   await expect(toast(page, '회차를 열었습니다.')).toBeVisible()
-  await expect(rowByFirstCell(page, cycle.name)).toContainText('진행중')
+  await expect(row).toContainText('진행중')
 })

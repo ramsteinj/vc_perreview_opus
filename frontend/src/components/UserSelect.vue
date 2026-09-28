@@ -1,7 +1,37 @@
-<script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+<script>
+import { ref } from 'vue'
 
 import { fetchUserOptions } from '@/api/admin'
+
+// 사용자 목록은 모든 UserSelect 인스턴스가 공유한다.
+// 배정 화면은 행마다 셀렉트가 2개씩 생기므로 인스턴스마다 요청하면
+// 한 페이지에서 수십 번 같은 목록을 받아 화면이 멈춘다.
+const sharedOptions = ref(null)
+let pending = null
+
+function loadUserOptions() {
+  if (sharedOptions.value) return Promise.resolve(sharedOptions.value)
+  if (!pending) {
+    pending = fetchUserOptions()
+      .then(({ data }) => {
+        sharedOptions.value = data
+        return data
+      })
+      .finally(() => {
+        pending = null
+      })
+  }
+  return pending
+}
+
+/** 사용자를 추가·수정한 뒤 다음 조회에서 새 목록을 받게 한다. */
+export function invalidateUserOptions() {
+  sharedOptions.value = null
+}
+</script>
+
+<script setup>
+import { computed, onMounted } from 'vue'
 
 const props = defineProps({
   modelValue: { type: [Number, String, null], default: null },
@@ -15,10 +45,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// 옵션 목록은 여러 인스턴스가 공유한다 (배정 화면에서 행마다 셀렉트가 생긴다)
-const cache = ref(null)
-const options = ref([])
-const loading = ref(false)
+const options = ref(sharedOptions.value ?? [])
+const loading = ref(sharedOptions.value === null)
 
 const selected = computed({
   get: () => (props.modelValue === null ? '' : props.modelValue),
@@ -29,23 +57,13 @@ const visibleOptions = computed(() =>
   options.value.filter((option) => String(option.id) !== String(props.excludeId))
 )
 
-async function load() {
-  if (cache.value) {
-    options.value = cache.value
-    return
-  }
-  loading.value = true
+onMounted(async () => {
   try {
-    const { data } = await fetchUserOptions()
-    cache.value = data
-    options.value = data
+    options.value = await loadUserOptions()
   } finally {
     loading.value = false
   }
-}
-
-watch(() => props.modelValue, () => {}, { immediate: true })
-onMounted(load)
+})
 </script>
 
 <template>

@@ -5,6 +5,11 @@ export function fetchCycles(params = {}) {
   return client.get('/admin/cycles/', { params })
 }
 
+/** 드롭다운용 전체 회차 목록 (페이지네이션 없음) */
+export function fetchCycleOptions() {
+  return client.get('/admin/cycles/options/')
+}
+
 export function fetchCycle(id) {
   return client.get(`/admin/cycles/${id}/`)
 }

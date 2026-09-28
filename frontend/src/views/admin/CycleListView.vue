@@ -1,15 +1,21 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 
 import { extractErrorMessage } from '@/api/client'
 import * as api from '@/api/evaluations'
 import BaseModal from '@/components/BaseModal.vue'
+import Pagination from '@/components/Pagination.vue'
 import { useToastStore } from '@/stores/toast'
 
 const toasts = useToastStore()
 
 const cycles = ref([])
+const total = ref(0)
 const loading = ref(false)
+const page = ref(1)
+const PAGE_SIZE = 25
+const search = ref('')
+let searchTimer = null
 
 const editModal = reactive({ open: false, busy: false, error: '', mode: 'create', id: null })
 const form = reactive({
@@ -42,14 +48,26 @@ const statusMeta = {
 async function load() {
   loading.value = true
   try {
-    const { data } = await api.fetchCycles({ page_size: 100 })
+    const params = { page: page.value, page_size: PAGE_SIZE }
+    if (search.value.trim()) params.search = search.value.trim()
+    const { data } = await api.fetchCycles(params)
     cycles.value = data.results
+    total.value = data.count
   } catch (error) {
     toasts.error(extractErrorMessage(error))
   } finally {
     loading.value = false
   }
 }
+
+watch(page, load)
+watch(search, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    if (page.value === 1) load()
+    else page.value = 1
+  }, 300)
+})
 
 function openCreate() {
   editModal.mode = 'create'
@@ -232,7 +250,17 @@ onMounted(load)
 
 <template>
   <div>
-    <div class="d-flex justify-content-end mb-3">
+    <div class="d-flex justify-content-between align-items-end gap-2 mb-3">
+      <div style="max-width: 320px" class="flex-grow-1">
+        <label class="form-label small mb-1" for="cycle-search">회차명 검색</label>
+        <input
+          id="cycle-search"
+          v-model="search"
+          type="search"
+          class="form-control form-control-sm"
+          placeholder="예: 2026년 상반기"
+        />
+      </div>
       <button class="btn btn-primary btn-sm" type="button" @click="openCreate">
         + 회차 추가
       </button>
@@ -346,6 +374,9 @@ onMounted(load)
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="card-footer bg-white">
+        <Pagination v-model:page="page" :page-size="PAGE_SIZE" :total="total" />
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import Pagination from './Pagination.vue'
 
 const props = defineProps({
   columns: { type: Array, required: true }, // [{ key, label, sortable, align, width }]
@@ -15,25 +15,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:page', 'update:ordering'])
 
-const totalPages = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
-
-const pageNumbers = computed(() => {
-  const last = totalPages.value
-  const current = props.page
-  const start = Math.max(1, Math.min(current - 2, last - 4))
-  const end = Math.min(last, start + 4)
-  const result = []
-  for (let i = start; i <= end; i += 1) result.push(i)
-  return result
-})
-
-const rangeLabel = computed(() => {
-  if (props.total === 0) return '0건'
-  const from = (props.page - 1) * props.pageSize + 1
-  const to = Math.min(props.page * props.pageSize, props.total)
-  return `${from}–${to} / 총 ${props.total}건`
-})
-
 function sortIcon(column) {
   if (!column.sortable) return ''
   if (props.ordering === column.key) return '▲'
@@ -47,10 +28,6 @@ function toggleSort(column) {
   emit('update:ordering', next)
 }
 
-function goToPage(value) {
-  if (value < 1 || value > totalPages.value || value === props.page) return
-  emit('update:page', value)
-}
 </script>
 
 <template>
@@ -112,27 +89,12 @@ function goToPage(value) {
       </table>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
-      <span class="text-muted small">{{ rangeLabel }}</span>
-
-      <nav v-if="totalPages > 1" aria-label="페이지 이동">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item" :class="{ disabled: page <= 1 }">
-            <button class="page-link" type="button" @click="goToPage(page - 1)">이전</button>
-          </li>
-          <li
-            v-for="number in pageNumbers"
-            :key="number"
-            class="page-item"
-            :class="{ active: number === page }"
-          >
-            <button class="page-link" type="button" @click="goToPage(number)">{{ number }}</button>
-          </li>
-          <li class="page-item" :class="{ disabled: page >= totalPages }">
-            <button class="page-link" type="button" @click="goToPage(page + 1)">다음</button>
-          </li>
-        </ul>
-      </nav>
-    </div>
+    <Pagination
+      class="mt-3"
+      :page="page"
+      :page-size="pageSize"
+      :total="total"
+      @update:page="emit('update:page', $event)"
+    />
   </div>
 </template>

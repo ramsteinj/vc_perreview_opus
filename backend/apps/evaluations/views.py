@@ -3,12 +3,14 @@
 import logging
 
 from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.accounts.permissions import IsAdminRole
+from apps.common.pagination import StandardPagination
 
 from .models import EvaluationCycle, EvaluationItem, EvaluatorAssignment, TargetType
 from .serializers import (
@@ -33,13 +35,21 @@ class EvaluationCycleViewSet(viewsets.ModelViewSet):
     filterset_fields = ['year', 'status']
     search_fields = ['name']
     ordering_fields = ['year', 'starts_on', 'ends_on', 'created_at']
-    ordering = ['-year', '-starts_on']
+    # 같은 연도·시작일끼리는 최근 생성 순. 동률이 남으면 페이지 경계에서 순서가 흔들린다
+    ordering = ['-year', '-starts_on', '-id']
 
     def get_queryset(self):
         return EvaluationCycle.objects.annotate(
             item_count=Count('items', distinct=True),
             assignment_count=Count('assignments', distinct=True),
         )
+
+    @extend_schema(summary='선택 항목용 회차 전체 목록', filters=False)
+    @action(detail=False, methods=['get'])
+    def options(self, request):
+        """드롭다운용 경량 목록 (항목 복제 원본 선택 등). 페이지네이션 없이 전체를 반환한다."""
+        queryset = EvaluationCycle.objects.order_by('-year', '-starts_on', '-id')
+        return Response(list(queryset.values('id', 'name', 'year', 'status')))
 
     @extend_schema(summary='가중치 합계 검증')
     @action(detail=True, methods=['get'], url_path='weight-check')
@@ -204,6 +214,8 @@ class EvaluatorAssignmentViewSet(viewsets.ModelViewSet):
             OpenApiParameter('target_type', str, required=True),
             OpenApiParameter('department', int),
             OpenApiParameter('search', str),
+            OpenApiParameter('page', int),
+            OpenApiParameter('page_size', int),
         ],
         filters=False,
     )
@@ -218,22 +230,23 @@ class EvaluatorAssignmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        cycle = EvaluationCycle.objects.get(pk=cycle_id)
+        cycle = get_object_or_404(EvaluationCycle, pk=cycle_id)
         rows = assignment_service.assignment_overview(
             cycle,
             target_type,
             department=request.query_params.get('department'),
             search=request.query_params.get('search'),
         )
+
+        # 배정/미배정 집계는 필터된 전체 기준, 행은 페이지 단위로 내려준다.
+        # 전 직원을 한 화면에 그리면 행마다 평가자 셀렉트가 생겨 화면이 멈춘다
         assigned = sum(1 for row in rows if row['assigned'])
-        return Response(
-            {
-                'count': len(rows),
-                'assigned': assigned,
-                'unassigned': len(rows) - assigned,
-                'results': rows,
-            }
-        )
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(rows, request, view=self)
+        response = paginator.get_paginated_response(page)
+        response.data['assigned'] = assigned
+        response.data['unassigned'] = len(rows) - assigned
+        return response
 
     @extend_schema(summary='일괄 배정', request=BulkAssignSerializer)
     @action(detail=False, methods=['post'])

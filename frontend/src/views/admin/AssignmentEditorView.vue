@@ -2,11 +2,12 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { fetchDepartments } from '@/api/admin'
+import { fetchDepartmentOptions } from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
 import * as api from '@/api/evaluations'
 import BaseModal from '@/components/BaseModal.vue'
-import UserSelect from '@/components/UserSelect.vue'
+import Pagination from '@/components/Pagination.vue'
+import UserSelect, { invalidateUserOptions } from '@/components/UserSelect.vue'
 import { useToastStore } from '@/stores/toast'
 
 const route = useRoute()
@@ -18,6 +19,11 @@ const targetType = ref('EMPLOYEE')
 const rows = ref([])
 const summary = reactive({ count: 0, assigned: 0, unassigned: 0 })
 const loading = ref(false)
+const page = ref(1)
+const PAGE_SIZE = 25
+
+// 화면에 들어올 때마다 평가자 후보를 새로 받는다 (그 사이 등록·비활성화된 직원 반영)
+invalidateUserOptions()
 const savingId = ref(null)
 
 const filters = reactive({ department: '', search: '' })
@@ -42,14 +48,19 @@ async function loadCycle() {
 }
 
 async function loadDepartments() {
-  const { data } = await fetchDepartments({ page_size: 200, is_active: true })
-  departments.value = data.results
+  const { data } = await fetchDepartmentOptions({ activeOnly: true })
+  departments.value = data
 }
 
 async function load() {
   loading.value = true
   try {
-    const params = { cycle: cycleId, target_type: targetType.value }
+    const params = {
+      cycle: cycleId,
+      target_type: targetType.value,
+      page: page.value,
+      page_size: PAGE_SIZE,
+    }
     if (filters.department) params.department = filters.department
     if (filters.search) params.search = filters.search
 
@@ -72,24 +83,32 @@ async function load() {
   }
 }
 
+/** 조건이 바뀌면 첫 페이지부터 다시 불러온다 */
+function reload() {
+  if (page.value === 1) load()
+  else page.value = 1 // page watch가 load를 부른다
+}
+
 watch(targetType, () => {
   filters.department = ''
   filters.search = ''
-  load()
+  reload()
 })
 
 watch(
   () => filters.department,
-  () => load()
+  () => reload()
 )
 
 watch(
   () => filters.search,
   () => {
     clearTimeout(searchTimer)
-    searchTimer = setTimeout(load, 300)
+    searchTimer = setTimeout(reload, 300)
   }
 )
+
+watch(page, load)
 
 function markDirty(row) {
   row.dirty = true
@@ -350,6 +369,9 @@ onMounted(async () => {
           </tbody>
         </table>
       </div>
+      <div class="card-footer bg-white">
+        <Pagination v-model:page="page" :page-size="PAGE_SIZE" :total="summary.count" />
+      </div>
     </div>
 
     <p class="text-muted small mt-2 mb-0">
@@ -377,7 +399,7 @@ onMounted(async () => {
         <div class="form-text">해당 부서 전원에게 같은 평가자를 지정합니다.</div>
       </div>
       <div v-else class="alert alert-light py-2 small">
-        현재 목록의 부서 {{ rows.length }}개에 같은 평가자를 지정합니다.
+        현재 페이지의 부서 {{ rows.length }}개에 같은 평가자를 지정합니다.
       </div>
 
       <div class="mb-3">

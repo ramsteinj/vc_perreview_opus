@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { fetchDepartments } from '@/api/admin'
+import { fetchDepartmentOptions } from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
 import { downloadCycleCsv } from '@/api/download'
 import { fetchCycle } from '@/api/evaluations'
@@ -82,8 +82,8 @@ async function loadCycle() {
 }
 
 async function loadDepartments() {
-  const { data } = await fetchDepartments({ page_size: 200 })
-  departments.value = data.results
+  const { data } = await fetchDepartmentOptions()
+  departments.value = data
 }
 
 async function loadSummary() {

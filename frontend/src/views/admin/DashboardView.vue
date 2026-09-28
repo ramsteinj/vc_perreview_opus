@@ -54,11 +54,13 @@ onMounted(async () => {
     }
     cycles.value = cycleList.data.results
 
-    // 진행 중 회차가 있으면 그 현황을, 없으면 가장 최근 회차를 보여준다
-    const target =
-      cycles.value.find((c) => c.status === 'OPEN') ??
-      cycles.value.find((c) => c.status === 'CLOSED') ??
-      null
+    // 진행 중 회차가 있으면 그 현황을, 없으면 가장 최근 마감 회차를 보여준다.
+    // 목록 앞 20개에서 찾으면 회차가 많을 때 진행 중 회차를 놓친다
+    const [openRes, closedRes] = await Promise.all([
+      fetchCycles({ status: 'OPEN', page_size: 1 }),
+      fetchCycles({ status: 'CLOSED', page_size: 1 }),
+    ])
+    const target = openRes.data.results[0] ?? closedRes.data.results[0] ?? null
 
     if (target) {
       activeCycle.value = target

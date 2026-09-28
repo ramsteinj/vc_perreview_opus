@@ -321,3 +321,28 @@ def test_일괄_배정에서_1차와_2차가_같으면_400이다(admin_client, c
         format='json',
     )
     assert res.status_code == 400
+
+
+def test_현황은_페이지_단위로_내려오고_집계는_전체_기준이다(
+    admin_client, cycle, member, manager, director
+):
+    """전 직원을 한 화면에 그리면 행마다 셀렉트가 생겨 화면이 멈춘다."""
+    EvaluatorAssignment.objects.create(
+        cycle=cycle, target_type=TargetType.EMPLOYEE, target_user=member, primary_evaluator=manager
+    )
+
+    res = admin_client.get(
+        f'{URL}overview/', {'cycle': cycle.id, 'target_type': TargetType.EMPLOYEE, 'page_size': 1}
+    )
+
+    # 활성 사용자: ADMIN, 김철수, 박팀장, 최본부장 → 4명 중 1명 배정
+    assert res.data['count'] == 4
+    assert len(res.data['results']) == 1
+    assert res.data['next'] is not None
+    assert res.data['assigned'] == 1
+    assert res.data['unassigned'] == 3
+
+
+def test_없는_회차로_현황을_요청하면_404다(admin_client):
+    res = admin_client.get(f'{URL}overview/', {'cycle': 999999, 'target_type': TargetType.EMPLOYEE})
+    assert res.status_code == 404

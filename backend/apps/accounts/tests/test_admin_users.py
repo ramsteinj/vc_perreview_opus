@@ -505,3 +505,16 @@ def test_DRAFT_회차_배정은_경고하지_않는다(admin_client, department)
     res = admin_client.delete(f'{URL}{evaluator.id}/')
 
     assert res.status_code == 200
+
+
+def test_options는_200명을_넘어도_전원을_반환한다(admin_client):
+    """상한이 있으면 그 뒤의 직원을 평가자로 지정할 수 없다 (E2E 누적 데이터에서 발견)."""
+    User.objects.bulk_create(
+        [User(employee_no=f'BULK{i:04d}', name=f'직원{i:04d}', is_active=True) for i in range(210)]
+    )
+
+    res = admin_client.get(f'{URL}options/')
+
+    numbers = {u['employee_no'] for u in res.data}
+    assert len(res.data) >= 211  # 210명 + ADMIN
+    assert 'BULK0209' in numbers

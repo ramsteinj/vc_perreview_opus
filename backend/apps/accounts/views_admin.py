@@ -77,6 +77,18 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         )
         return Response({'count': len(departments), 'results': serializer.data})
 
+    @extend_schema(summary='선택 항목용 부서 전체 목록', filters=False)
+    @action(detail=False, methods=['get'])
+    def options(self, request):
+        """드롭다운용 경량 목록. 페이지네이션 없이 전체를 반환한다.
+
+        목록 API(최대 200건)로 드롭다운을 채우면 그 뒤의 부서가 선택지에서 빠진다.
+        """
+        queryset = Department.objects.order_by('code')
+        if request.query_params.get('is_active') == 'true':
+            queryset = queryset.filter(is_active=True)
+        return Response(list(queryset.values('id', 'code', 'name', 'parent', 'is_active')))
+
     @extend_schema(summary='부서 생성')
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
@@ -360,7 +372,10 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     @extend_schema(summary='선택 항목용 사용자 요약 목록', filters=False)
     @action(detail=False, methods=['get'])
     def options(self, request):
-        """평가자 선택 등에 쓰는 경량 목록. 페이지네이션 없이 활성 사용자만 반환한다."""
+        """평가자 선택 등에 쓰는 경량 목록. 페이지네이션 없이 활성 사용자 전원을 반환한다.
+
+        상한을 두면 그 뒤의 직원은 평가자로 지정할 수 없게 된다 (예전 200명 상한 버그).
+        """
         queryset = (
             User.objects.filter(is_active=True)
             .select_related('department')
@@ -381,7 +396,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
                     'department_name': u.department.name if u.department else None,
                     'role': u.role,
                 }
-                for u in queryset[:200]
+                for u in queryset
             ]
         )
 

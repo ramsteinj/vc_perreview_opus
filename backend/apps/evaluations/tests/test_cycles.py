@@ -287,3 +287,42 @@ def test_미배정_응답의_구조가_유지된다(admin_client, cycle, full_it
     assert isinstance(employees, list)
     assert isinstance(employees[0], dict)
     assert isinstance(employees[0]['id'], int)
+
+
+# ── 목록 정렬 · 드롭다운용 전체 목록 ─────────────────────────
+
+
+def test_같은_연도와_시작일이면_최근_생성_순이다(admin_client):
+    """동률이 남으면 페이지 경계에서 순서가 흔들려 새 회차가 다음 페이지로 밀린다."""
+    from apps.evaluations.models import EvaluationCycle
+
+    created = [
+        EvaluationCycle.objects.create(
+            name=f'동률{i}', year=2026, starts_on='2026-09-01', ends_on='2026-09-30'
+        )
+        for i in range(3)
+    ]
+
+    res = admin_client.get(URL, {'page_size': 2})
+
+    names = [c['name'] for c in res.data['results']]
+    assert names == [created[2].name, created[1].name]
+
+
+def test_회차_options는_페이지네이션_없이_전체를_반환한다(admin_client):
+    from apps.evaluations.models import EvaluationCycle
+
+    EvaluationCycle.objects.bulk_create(
+        [
+            EvaluationCycle(
+                name=f'회차{i}', year=2026, starts_on='2026-01-01', ends_on='2026-01-31'
+            )
+            for i in range(210)
+        ]
+    )
+
+    res = admin_client.get(f'{URL}options/')
+
+    assert isinstance(res.data, list)
+    assert len(res.data) == 210
+    assert set(res.data[0]) == {'id', 'name', 'year', 'status'}

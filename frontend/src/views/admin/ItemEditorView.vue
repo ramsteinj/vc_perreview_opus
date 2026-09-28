@@ -61,8 +61,8 @@ async function loadItems() {
 }
 
 async function loadOtherCycles() {
-  const { data } = await api.fetchCycles({ page_size: 100 })
-  otherCycles.value = data.results.filter((c) => c.id !== cycleId)
+  const { data } = await api.fetchCycleOptions()
+  otherCycles.value = data.filter((c) => c.id !== cycleId)
 }
 
 watch(targetType, loadItems)

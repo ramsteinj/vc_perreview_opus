@@ -29,7 +29,8 @@ test.describe('부서 관리', () => {
     await child.getByLabel('부서코드').fill(childCode)
     await child.getByLabel('부서명').fill(`팀${childCode}`)
     await child.getByRole('button', { name: '저장' }).click()
-    await expect(toast(page, '부서를 생성했습니다.')).toBeVisible()
+    // 첫 번째 생성 토스트(3초)가 아직 떠 있을 수 있어 마지막 것을 확인한다
+    await expect(toast(page, '부서를 생성했습니다.').last()).toBeVisible()
 
     const childRow = page.locator('tbody tr').filter({ hasText: childCode })
     await expect(childRow).toContainText('└')

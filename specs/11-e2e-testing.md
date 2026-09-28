@@ -190,6 +190,8 @@ test('임시 저장 후 새로고침하면 입력이 복원된다', async ({ pag
 테스트는 **병렬로** 돈다 (`fullyParallel: true`). 한 테스트가 다른 테스트의 데이터에 기대면 안 된다.
 
 - 사번·부서코드·회차명은 `uid()`로 고유하게 만든다. 고정값을 쓰지 않는다
+- **목록에서 방금 만든 항목을 위치로 찾지 않는다.** 목록은 페이지로 나뉘고 데이터가 누적될 수 있다.
+  검색창으로 좁힌 뒤 찾는다 (예: 회차명 검색, 사번 검색)
 - **전역 개수를 단언하지 않는다.** "사용자가 3명이다"는 다른 테스트가 만든 사용자 때문에 깨진다.
   자기가 만든 데이터로 범위를 좁혀서(검색, 회차 ID) 단언한다
 - 회차를 열 때 다른 테스트의 사용자가 항상 미배정 상태로 존재한다. `openCycle`은 `confirm=true`를 쓰고,
@@ -259,7 +261,10 @@ const [download] = await Promise.all([
   page.waitForEvent('download'),
   page.getByRole('button', { name: 'CSV 다운로드' }).click(),
 ])
-const bytes = await readFile(await download.path())
+// download.path()는 원격 브라우저에 연결해 실행하면 쓸 수 없다. saveAs()를 쓴다
+const saved = testInfo.outputPath(download.suggestedFilename())
+await download.saveAs(saved)
+const bytes = await readFile(saved)
 
 // 파일 업로드 (디스크에 파일을 만들지 않는다)
 await input.setInputFiles({ name: 'users.csv', mimeType: 'text/csv', buffer: Buffer.from(text) })
@@ -368,11 +373,31 @@ page.on('response', (res) => { if (res.url().includes('/submit/')) statuses.push
 | `port 5174 is already in use` | 이전 실행의 서버가 남음 | 해당 프로세스 종료, 또는 `E2E_FRONTEND_PORT` 변경 |
 | `Chromium distribution 'chrome' is not found` | Google Chrome 미설치 | `sudo npx playwright install chrome`, 또는 `npm test`(Chromium) 사용 |
 | `strict mode violation ... resolved to 2 elements` | 같은 문구가 여러 곳에 있음 | 범위를 좁힌다 (§5.4) |
+| 같은 문구의 토스트가 2개라 strict mode 위반 | 같은 동작을 연달아 해서 앞 토스트(3초)가 남아 있음 | `toast(...).last()` |
+| `Path is not available when connecting remotely` | 원격 브라우저 연결에서 `download.path()` 사용 | `download.saveAs()` (§5.6) |
+| 새로 만든 항목이 목록에서 안 보여 시간 초과 | 목록이 페이지로 나뉘어 있음 | 위치에 기대지 말고 검색으로 좁힌다 (§5.2) |
 | 단독으로는 통과, 전체 실행에서만 실패 | 테스트 간 데이터 의존 또는 경쟁 조건 | §5.2 확인, `--repeat-each`로 재현 |
 | 사용자를 바꿨는데 이전 사용자로 로그인되어 있음 | 이미 열린 페이지에 토큰을 심음 | `loginAs`를 쓴다 (§5.3) |
 
-로컬에서는 이미 떠 있는 서버를 재사용한다 (`reuseExistingServer`). 8001/5174에 직접 띄운 서버가 있으면
-DB 초기화(flush)가 일어나지 않지만, 테스트가 고유 데이터를 쓰므로 결과에는 영향이 없다.
+### 7.1 서버 재사용과 데이터 누적
+
+로컬에서는 이미 떠 있는 서버를 재사용한다 (`reuseExistingServer`). VS Code 확장이나 UI 모드처럼
+**서버를 띄워 둔 채 여러 번 실행하면 DB 초기화(flush)가 일어나지 않아 데이터가 계속 쌓인다.**
+실행할 때마다 부서·사용자·회차가 수십 개씩 늘어난다.
+
+테스트는 고유 데이터를 쓰므로 누적되어도 통과해야 한다. 실제로 누적 데이터(부서 365, 사용자 915,
+회차 348)에서 **목록이 200건·100건에서 잘리는 앱 버그**가 드러났다 (2026-09-28 수정).
+누적 상태는 규모가 큰 조직을 흉내 내는 셈이라 오히려 유용하다.
+
+처음부터 깨끗하게 돌리려면 8001/5174의 서버를 끄고 다시 실행한다. 다음 실행이 서버를 새로 띄우며
+DB를 비운다.
+
+```bash
+kill $(ss -lntp | grep -E ':(8001|5174) ' | grep -oE 'pid=[0-9]+' | cut -d= -f2)
+```
+
+**백엔드 코드를 바꿨다면 반드시 서버를 재시작한다.** 백엔드는 `--noreload`로 뜨므로 재사용된 서버는
+옛 코드로 돈다 (프론트엔드는 Vite가 즉시 반영한다). 새 엔드포인트가 404를 내면 이 경우다.
 
 ## 8. CI 예시
 

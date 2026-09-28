@@ -198,8 +198,10 @@
 | Method | Path | 설명 |
 |--------|------|------|
 | GET/POST | `/admin/departments/` | 부서 목록(`?tree=true`)/생성 |
+| GET | `/admin/departments/options/` | 드롭다운용 전체 부서 (`?is_active=true`) |
 | GET/PATCH/DELETE | `/admin/departments/{id}/` | 부서 상세/수정/삭제(소프트) |
 | GET/POST | `/admin/users/` | 사용자 목록/생성 |
+| GET | `/admin/users/options/` | 드롭다운용 전체 활성 사용자 (`?search=`) |
 | GET/PATCH/DELETE | `/admin/users/{id}/` | 사용자 상세/수정/비활성화 |
 | POST | `/admin/users/{id}/reset-password/` | 비밀번호 초기화 |
 | POST | `/admin/users/bulk-import/` | CSV 일괄 등록 (multipart) |
@@ -208,13 +210,29 @@
 
 쿼리: `?search=홍길동&department=3&role=EMPLOYEE&is_active=true&ordering=employee_no`
 
+### 드롭다운용 전체 목록 (`*/options/`)
+
+목록 API는 페이지네이션되며 한 번에 최대 200건이다. **드롭다운을 목록 API로 채우지 않는다.**
+200건을 넘으면 뒤쪽 항목이 선택지에서 조용히 빠진다
+(부서 200개, 직원 200명을 넘는 조직에서 일부를 고를 수 없게 된다).
+선택지는 페이지네이션 없이 전체를 주는 `options` 엔드포인트로 채운다.
+
+| 엔드포인트 | 응답 필드 |
+|------------|-----------|
+| `/admin/departments/options/` | `id, code, name, parent, is_active` |
+| `/admin/users/options/` | `id, employee_no, name, department_name, role` (활성 사용자만) |
+| `/admin/cycles/options/` | `id, name, year, status` |
+
+부서 트리(`?tree=true`)도 페이지네이션 없이 전체를 준다.
+
 ---
 
 ## 5. 관리자 — 평가 설정 (`/api/admin`)
 
 | Method | Path | 설명 |
 |--------|------|------|
-| GET/POST | `/admin/cycles/` | 회차 목록/생성 |
+| GET/POST | `/admin/cycles/` | 회차 목록/생성 (`?search=` 회차명, 정렬: 연도·시작일 역순, 동률은 최근 생성 순) |
+| GET | `/admin/cycles/options/` | 드롭다운용 전체 회차 |
 | GET/PATCH | `/admin/cycles/{id}/` | 회차 상세/수정 |
 | POST | `/admin/cycles/{id}/open/` | `OPEN` 전이 (`?confirm=true`) |
 | POST | `/admin/cycles/{id}/close/` | `CLOSED` 전이 + 자동 산출 |
@@ -224,6 +242,7 @@
 | POST | `/admin/items/reorder/` | 순서 일괄 변경 |
 | GET | `/admin/items/weight-check/` | 가중치 합계 검증 (`?cycle=3`) |
 | GET/POST | `/admin/assignments/` | 평가자 배정 목록/생성 |
+| GET | `/admin/assignments/overview/` | 배정 현황 — 미배정 대상 포함, 페이지네이션 (`?cycle=&target_type=&department=&search=&page=`) |
 | GET/PATCH/DELETE | `/admin/assignments/{id}/` | 배정 상세/수정/삭제 |
 | POST | `/admin/assignments/bulk/` | 일괄 배정 |
 

@@ -5,6 +5,13 @@ export function fetchDepartments(params = {}) {
   return client.get('/admin/departments/', { params })
 }
 
+/** 드롭다운용 전체 부서 목록 (페이지네이션 없음) */
+export function fetchDepartmentOptions({ activeOnly = false } = {}) {
+  return client.get('/admin/departments/options/', {
+    params: activeOnly ? { is_active: 'true' } : {},
+  })
+}
+
 export function fetchDepartmentTree() {
   return client.get('/admin/departments/', { params: { tree: 'true' } })
 }

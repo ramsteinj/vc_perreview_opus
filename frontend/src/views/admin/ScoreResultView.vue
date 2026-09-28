@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { fetchDepartments } from '@/api/admin'
+import { fetchDepartmentOptions } from '@/api/admin'
 import { extractErrorMessage } from '@/api/client'
 import { downloadCycleCsv } from '@/api/download'
 import { fetchCycle } from '@/api/evaluations'
@@ -162,10 +162,10 @@ async function recalculate() {
 onMounted(async () => {
   const [cycleRes, deptRes] = await Promise.all([
     fetchCycle(cycleId),
-    fetchDepartments({ page_size: 200 }),
+    fetchDepartmentOptions(),
   ])
   cycle.value = cycleRes.data
-  departments.value = deptRes.data.results
+  departments.value = deptRes.data
   await load()
 })
 </script>

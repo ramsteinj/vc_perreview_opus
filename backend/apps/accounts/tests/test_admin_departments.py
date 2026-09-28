@@ -234,3 +234,44 @@ def test_생성한_부서에_직원을_소속시킬_수_있다(admin_client):
     assert res.status_code == 201
     assert res.data['department'] == dept_id
     assert User.objects.get(employee_no='20260501').department_id == dept_id
+
+
+# ── 드롭다운용 전체 목록 ─────────────────────────────────────
+
+
+def test_options는_200개를_넘어도_전체를_반환한다(admin_client):
+    """목록 API(최대 200건)로 드롭다운을 채우면 뒤쪽 부서가 빠진다 (E2E 누적 데이터에서 발견)."""
+    Department.objects.bulk_create(
+        [Department(code=f'Z{i:04d}', name=f'부서{i}') for i in range(210)]
+    )
+
+    res = admin_client.get(f'{URL}options/')
+
+    assert res.status_code == 200
+    assert isinstance(res.data, list)
+    assert len(res.data) == 210
+    assert res.data[-1]['code'] == 'Z0209'
+
+
+def test_options에_상위부서가_담긴다(admin_client):
+    parent = Department.objects.create(code='HQ', name='본사')
+    Department.objects.create(code='DEV1', name='개발1팀', parent=parent)
+
+    res = admin_client.get(f'{URL}options/')
+
+    child = next(d for d in res.data if d['code'] == 'DEV1')
+    assert child['parent'] == parent.id
+    assert set(child) == {'id', 'code', 'name', 'parent', 'is_active'}
+
+
+def test_options를_활성_부서로_거를_수_있다(admin_client):
+    Department.objects.create(code='DEV1', name='개발1팀')
+    Department.objects.create(code='OLD', name='폐지팀', is_active=False)
+
+    res = admin_client.get(f'{URL}options/', {'is_active': 'true'})
+
+    assert [d['code'] for d in res.data] == ['DEV1']
+
+
+def test_직원은_부서_options에_접근할_수_없다(employee_client):
+    assert employee_client.get(f'{URL}options/').status_code == 403

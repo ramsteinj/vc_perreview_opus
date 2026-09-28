@@ -81,10 +81,10 @@ async function load() {
 async function loadReferenceData() {
   try {
     const [deptRes, roleRes] = await Promise.all([
-      adminApi.fetchDepartments({ page_size: 200, is_active: true }),
+      adminApi.fetchDepartmentOptions({ activeOnly: true }),
       adminApi.fetchRoles(),
     ])
-    departments.value = deptRes.data.results
+    departments.value = deptRes.data
     roles.value = roleRes.data
   } catch (error) {
     toasts.error(extractErrorMessage(error))
