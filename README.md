@@ -215,7 +215,6 @@ Playwright로 브라우저에서 실제 사용자 흐름을 검증합니다. 전
 포트(백엔드 8001, 프론트엔드 5174)를 쓰므로 개발 서버를 띄워 둔 채로 실행해도 됩니다.
 
 ```bash
-docker compose up -d              # DB만 떠 있으면 된다
 cd tests
 npm install
 npm run install:browsers          # Chromium (sudo 불필요)

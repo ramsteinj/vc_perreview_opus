@@ -7,6 +7,27 @@
 # 3. 127.0.0.1:8001에서 runserver를 띄운다
 #
 # 개발 DB(perreview)와 개발 서버(8000)는 건드리지 않는다.
+
+# Start postgres
+set -euo pipefail
+
+echo "🔥 START-BACKEND.SH STARTED"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+echo "[e2e] Starting Docker Compose..."
+
+cd "$PROJECT_ROOT"
+docker compose up -d
+
+echo "[e2e] Waiting for PostgreSQL..."
+until docker compose exec -T db pg_isready -U postgres >/dev/null 2>&1
+do
+    sleep 1
+done
+echo "[e2e] PostgreSQL is ready."
+cd "$PROJECT_ROOT/tests"
+
+# Start backend
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
